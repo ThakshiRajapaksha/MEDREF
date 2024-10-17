@@ -12,8 +12,9 @@ async function resetAutoIncrement() {
 }
 
 // Call the function to reset auto-increment
-resetAutoIncrement().catch((e) => {
-  console.error('Failed to reset auto-increment:', e);
-});
-
+if (process.env.NODE_ENV === 'development') {
+  resetAutoIncrement().catch((e) => {
+    console.error('Failed to reset auto-increment:', e);
+  });
+}
 export default prisma;
