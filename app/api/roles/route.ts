@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 export async function GET() {
   try {
     // Fetch all roles
-    const roles = await prisma.role.findMany();
+    const roles = await prisma.$queryRaw`SELECT * FROM Role`;
 
     // Return roles with a success message
     return NextResponse.json(
