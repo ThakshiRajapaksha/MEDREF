@@ -4,21 +4,20 @@ import prisma from '@/lib/prisma';
 export async function GET() {
   try {
     // Fetch all roles
-    const roles = await prisma.$queryRaw`SELECT * FROM Role`;
+    const roles = await prisma.role.findMany();
 
     // Return roles with a success message
     return NextResponse.json(
       { success: true, message: 'List of roles', data: roles },
       { status: 200 }
     );
-  } catch (error: unknown) {
+  } catch (error) {
+    console.error('Error fetching roles:', error); // Log the error for debugging
+
+    // Handle Prisma-specific errors if applicable
     if (error instanceof Error) {
       return NextResponse.json(
-        {
-          success: false,
-          message: 'Failed to fetch roles',
-          error: error.message,
-        },
+        { success: false, message: 'Failed to fetch roles', error: error.message },
         { status: 500 }
       );
     }
