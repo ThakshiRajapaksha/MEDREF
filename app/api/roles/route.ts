@@ -17,7 +17,11 @@ export async function GET() {
     // Handle Prisma-specific errors if applicable
     if (error instanceof Error) {
       return NextResponse.json(
-        { success: false, message: 'Failed to fetch roles', error: error.message },
+        {
+          success: false,
+          message: 'Failed to fetch roles',
+          error: error.message,
+        },
         { status: 500 }
       );
     }
