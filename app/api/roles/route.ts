@@ -6,28 +6,23 @@ export async function GET() {
     // Fetch all roles
     const roles = await prisma.role.findMany();
 
+    // Log the roles for debugging purposes
+    console.log('Roles fetched successfully:', roles);
+
     // Return roles with a success message
     return NextResponse.json(
       { success: true, message: 'List of roles', data: roles },
       { status: 200 }
     );
-  } catch (error) {
-    console.error('Error fetching roles:', error); // Log the error for debugging
-
-    // Handle Prisma-specific errors if applicable
-    if (error instanceof Error) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Failed to fetch roles',
-          error: error.message,
-        },
-        { status: 500 }
-      );
-    }
+  } catch (error: unknown) {
+    console.error('Error in /api/roles:', error);
 
     return NextResponse.json(
-      { success: false, message: 'An unknown error occurred' },
+      {
+        success: false,
+        message: 'Failed to fetch roles',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }
