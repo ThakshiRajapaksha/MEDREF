@@ -8,7 +8,8 @@
     "next/typescript",
     "eslint:recommended",
     "plugin:@next/next/recommended",
-    "plugin:prettier/recommended"
+    "plugin:prettier/recommended",
+    "plugin:react/recommended"
   ],
   "plugins": ["prettier"],
   "parserOptions": {

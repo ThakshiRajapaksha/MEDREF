@@ -22,6 +22,7 @@ model User{
   email      String   @unique
   password  String
   role      Role     @relation(fields: [roleId], references: [id])
+  patients  Patient[]
   roleId    Int
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt()
@@ -32,4 +33,17 @@ model Role {
   id    Int    @id @default(autoincrement())
   name  String @unique
   users User[]
+}
+
+model Patient {
+  id          Int      @id @default(autoincrement())
+  first_name  String
+  last_name   String
+  age         Int
+  gender      String
+  contact     String
+  medicalHistory String?
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById Int
+  createdAt   DateTime @default(now())
 }

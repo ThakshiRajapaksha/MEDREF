@@ -1,4 +1,3 @@
-// Import necessary modules
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -33,16 +32,21 @@ export default function LoginPage() {
         // Handle successful login
         localStorage.setItem('token', data.token);
 
+        const userId = data.user.id;
+
         // Redirect based on user role
         switch (data.user.roleId) {
           case 1: // Admin
-            router.push('/Dashboard/Admin');
+            router.push(`/Dashboard/Admin/${userId}`);
             break;
           case 2: // Doctor
-            router.push('/Dashboard/Doctor');
+            router.push(`/Dashboard/Doctor/${userId}`);
             break;
           case 3: // Lab-technician
-            router.push('/Dashboard/Lab-technician');
+            router.push(`/Dashboard/Lab-technician/${userId}`);
+            break;
+          default:
+            setErrorMessage('Invalid user role');
             break;
         }
       } else {
