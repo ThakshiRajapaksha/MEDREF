@@ -4,10 +4,16 @@ import React, { MouseEventHandler } from 'react';
 interface ButtonProps {
   label: string;
   color?: 'blue' | 'red' | 'green' | 'gray'; // Define color prop as specific colors
-  onClick: MouseEventHandler<HTMLButtonElement>;
+  onClick?: MouseEventHandler<HTMLButtonElement>; // Make onClick optional
+  type?: 'button' | 'submit' | 'reset'; // Allow type prop with HTML button types
 }
 
-const Button: React.FC<ButtonProps> = ({ label, color = 'blue', onClick }) => {
+const Button: React.FC<ButtonProps> = ({
+  label,
+  color = 'blue',
+  onClick,
+  type = 'button',
+}) => {
   // Use Tailwind CSS utility classes for the button styles
   const baseClasses = 'text-white px-4 py-2 rounded';
 
@@ -22,6 +28,7 @@ const Button: React.FC<ButtonProps> = ({ label, color = 'blue', onClick }) => {
 
   return (
     <button
+      type={type} // Pass the type prop here
       className={`${baseClasses} ${colorClasses[color]} mr-4`}
       onClick={onClick}
     >
