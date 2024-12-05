@@ -12,17 +12,9 @@ export async function POST(req: Request) {
       contact,
       medicalHistory,
       adminId,
+      illnesses,
+      allergies,
     } = await req.json();
-
-    console.log('Request data:', {
-      first_name,
-      last_name,
-      age,
-      gender,
-      contact,
-      medicalHistory,
-      adminId,
-    });
 
     if (!first_name || !last_name || !age || !gender || !contact || !adminId) {
       return NextResponse.json(
@@ -40,6 +32,8 @@ export async function POST(req: Request) {
         contact,
         medicalHistory: medicalHistory || '',
         createdById: adminId,
+        illnesses: illnesses || null,  // Default to null if not provided
+        allergies: allergies || null,
       },
     });
 

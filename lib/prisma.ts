@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
+// Use globalThis instead of global
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
 
 export const prisma = globalForPrisma.prisma || new PrismaClient();
 
@@ -17,4 +18,5 @@ if (process.env.NODE_ENV === 'development') {
     console.error('Failed to reset auto-increment:', e);
   });
 }
+
 export default prisma;

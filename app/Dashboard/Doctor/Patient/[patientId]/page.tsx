@@ -3,8 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
 export default function DoctorPatientUpdateForm() {
-  const { patientId } = useParams(); // Access patientId from URL params
-  const router = useRouter(); // Typecast query params
+  const { patientId } = useParams();
+  const router = useRouter();
+
+  interface Lab {
+    id: number;
+    name: string;
+  }
+
+  interface TestType {
+    id: number;
+    name: string;
+    lab: Lab;
+  }
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -17,12 +28,13 @@ export default function DoctorPatientUpdateForm() {
     medical_history: '',
   });
 
+  const [testTypes, setTestTypes] = useState<TestType[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch patient data
   useEffect(() => {
     if (patientId) {
-      // Fetch patient data for the given patientId
       fetch(`/api/patients/${patientId}`)
         .then((response) => {
           if (!response.ok) throw new Error('Failed to fetch patient data');
@@ -38,7 +50,7 @@ export default function DoctorPatientUpdateForm() {
               test_type: '',
               lab: '',
               referral_status: '',
-              medical_history: patientData.patient.medicalHistory || '', // Correct field name from API
+              medical_history: patientData.patient.medicalHistory || '',
             });
           } else {
             setErrorMessage('Patient data not found.');
@@ -51,21 +63,59 @@ export default function DoctorPatientUpdateForm() {
     }
   }, [patientId]);
 
+  // Fetch test types
+  useEffect(() => {
+    fetch('/api/test_type')
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((errorData) => {
+            console.error('Error fetching test types:', errorData);
+            throw new Error('Failed to fetch test types');
+          });
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.success) {
+          setTestTypes(data.testTypes || []);
+        } else {
+          setErrorMessage('Failed to load test types.');
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching test types:', error);
+        setErrorMessage('Failed to fetch test types.');
+      });
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target; // Extract name and value
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value, // Use name as key to update formData
+      [name]: value,
     });
+  };
+
+  const handleTestTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedTestTypeId = parseInt(e.target.value, 10);
+    const selectedTestType = testTypes.find((type) => type.id === selectedTestTypeId);
+
+    if (selectedTestType) {
+      setFormData((prev) => ({
+        ...prev,
+        test_type: selectedTestType.name,
+        lab: selectedTestType.lab.name,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setIsSubmitting(true);
-    setErrorMessage(''); // Clear previous error message on new submit attempt
+    setErrorMessage('');
 
     try {
       const res = await fetch(`/api/patients/${patientId}`, {
@@ -74,10 +124,13 @@ export default function DoctorPatientUpdateForm() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          illness: formData.illness,
           allergies: formData.allergies,
           test_type: formData.test_type,
           lab: formData.lab,
-          referral_status: 'Sent',
+          referral_status: 'Sent',  // Assuming referral status is always 'Sent' after update
           medical_history: formData.medical_history,
         }),
       });
@@ -142,7 +195,7 @@ export default function DoctorPatientUpdateForm() {
               name="illness"
               type="text"
               value={formData.illness}
-              onChange={handleChange} // Allow input change for new fields
+              onChange={handleChange}
               className="w-full p-2 mt-1 border border-gray-300 rounded"
             />
           </div>
@@ -154,21 +207,27 @@ export default function DoctorPatientUpdateForm() {
               name="allergies"
               type="text"
               value={formData.allergies}
-              onChange={handleChange} // Handle input change
+              onChange={handleChange}
               className="w-full p-2 mt-1 border border-gray-300 rounded"
             />
           </div>
 
           <div>
             <label htmlFor="test_type">Test Type</label>
-            <input
+            <select
               id="test_type"
               name="test_type"
-              type="text"
               value={formData.test_type}
-              onChange={handleChange} // Handle input change
+              onChange={handleTestTypeChange}
               className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
+            >
+              <option value="">Select a Test Type</option>
+              {testTypes.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>
@@ -178,7 +237,7 @@ export default function DoctorPatientUpdateForm() {
               name="lab"
               type="text"
               value={formData.lab}
-              onChange={handleChange} // Handle input change
+              disabled
               className="w-full p-2 mt-1 border border-gray-300 rounded"
             />
           </div>
@@ -189,7 +248,7 @@ export default function DoctorPatientUpdateForm() {
               id="medical_history"
               name="medical_history"
               value={formData.medical_history}
-              onChange={handleChange} // Handle input change
+              onChange={handleChange}
               rows={4}
               className="w-full p-2 mt-1 border border-gray-300 rounded"
             />
