@@ -1,210 +1,102 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { CalendarDateRangePicker } from '@/app/components/ui/CalendarDateRangePicker';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '../../../components/ui/card';
 
-export default function DoctorPatientUpdateForm() {
-  const { patientId } = useParams(); // Access patientId from URL params
-  const router = useRouter(); // Typecast query params
+export default function DoctorDashboard() {
+  const { id } = useParams();
+  const [userData, setUserData] = useState<{ name: string; role: string } | null>(null);
 
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    illness: '',
-    allergies: '',
-    test_type: '',
-    lab: '',
-    referral_status: '',
-    medical_history: '',
-  });
-
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [patients, setPatients] = useState(0);
+  const [referrals, setReferrals] = useState(0);
+  const [tests, setTests] = useState(0);
+  const [urgentCases, setUrgentCases] = useState(0);
 
   useEffect(() => {
-    if (patientId) {
-      // Fetch patient data for the given patientId
-      fetch(`/api/patients/${patientId}`)
-        .then((response) => {
-          if (!response.ok) throw new Error('Failed to fetch patient data');
-          return response.json();
-        })
-        .then((patientData) => {
-          if (patientData.success && patientData.patient) {
-            setFormData({
-              first_name: patientData.patient.first_name || '',
-              last_name: patientData.patient.last_name || '',
-              illness: '',
-              allergies: '',
-              test_type: '',
-              lab: '',
-              referral_status: '',
-              medical_history: patientData.patient.medicalHistory || '', // Correct field name from API
-            });
-          } else {
-            setErrorMessage('Patient data not found.');
-          }
-        })
-        .catch((error) => {
-          console.error('Error fetching patient data:', error);
-          setErrorMessage('Failed to fetch patient data.');
-        });
-    }
-  }, [patientId]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target; // Extract name and value
-    setFormData({
-      ...formData,
-      [name]: value, // Use name as key to update formData
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    setIsSubmitting(true);
-    setErrorMessage(''); // Clear previous error message on new submit attempt
-
-    try {
-      const res = await fetch(`/api/patients/${patientId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          allergies: formData.allergies,
-          test_type: formData.test_type,
-          lab: formData.lab,
-          referral_status: 'Sent',
-          medical_history: formData.medical_history,
-        }),
+    fetch(`/api/users/${id}`)
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success && data.user) {
+          setUserData({
+            name: `${data.user.first_name} ${data.user.last_name}`,
+            role: data.user.role.name,
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching user data:', error);
       });
 
-      if (res.ok) {
-        alert('Patient data updated successfully!');
-        router.push('/Dashboard/Doctor/PatientTable');
-      } else {
-        const { message } = await res.json();
-        setErrorMessage(message || 'Failed to update patient data.');
-      }
-    } catch (error) {
-      setErrorMessage('An error occurred. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    fetch('/api/dashboard-data')
+      .then((response) => response.json())
+      .then((data) => {
+        setPatients(data.patients || 0);
+        setReferrals(data.referrals || 0);
+        setTests(data.tests || 0);
+        setUrgentCases(data.urgentCases || 0);
+      })
+      .catch((error) => {
+        console.error('Error fetching dashboard data:', error);
+      });
+  }, [id]);
 
-  const handleViewPatients = () => {
-    router.push('/Dashboard/Doctor/PatientTable');
-  };
+  if (!userData) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-lg p-8 bg-white shadow-lg rounded-lg">
-        <button
-          onClick={handleViewPatients}
-          className="mb-4 p-2 text-white bg-green-600 rounded hover:bg-green-700"
-        >
-          View Patients
-        </button>
+    <div className="relative flex-1 p-4 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-xl font-bold">Welcome, {userData.name}</h1>
+        <CalendarDateRangePicker className="z-10" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="first_name">First Name</label>
-            <input
-              id="first_name"
-              name="first_name"
-              type="text"
-              value={formData.first_name}
-              disabled
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
-          </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Patients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{patients}</div>
+            <p className="text-xs text-muted-foreground">Total patients registered</p>
+          </CardContent>
+        </Card>
 
-          <div>
-            <label htmlFor="last_name">Last Name</label>
-            <input
-              id="last_name"
-              name="last_name"
-              type="text"
-              value={formData.last_name}
-              disabled
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Referrals</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{referrals}</div>
+            <p className="text-xs text-muted-foreground">Total referrals made</p>
+          </CardContent>
+        </Card>
 
-          <div>
-            <label htmlFor="illness">Illness</label>
-            <input
-              id="illness"
-              name="illness"
-              type="text"
-              value={formData.illness}
-              onChange={handleChange} // Allow input change for new fields
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Tests</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{tests}</div>
+            <p className="text-xs text-muted-foreground">Total tests conducted</p>
+          </CardContent>
+        </Card>
 
-          <div>
-            <label htmlFor="allergies">Allergies</label>
-            <input
-              id="allergies"
-              name="allergies"
-              type="text"
-              value={formData.allergies}
-              onChange={handleChange} // Handle input change
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="test_type">Test Type</label>
-            <input
-              id="test_type"
-              name="test_type"
-              type="text"
-              value={formData.test_type}
-              onChange={handleChange} // Handle input change
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="lab">Lab</label>
-            <input
-              id="lab"
-              name="lab"
-              type="text"
-              value={formData.lab}
-              onChange={handleChange} // Handle input change
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="medical_history">Medical History</label>
-            <textarea
-              id="medical_history"
-              name="medical_history"
-              value={formData.medical_history}
-              onChange={handleChange} // Handle input change
-              rows={4}
-              className="w-full p-2 mt-1 border border-gray-300 rounded"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full p-2 mt-4 text-white bg-blue-600 rounded hover:bg-blue-700"
-          >
-            {isSubmitting ? 'Updating...' : 'Update Patient Info'}
-          </button>
-
-          {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
-        </form>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Urgent Cases</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{urgentCases}</div>
+            <p className="text-xs text-muted-foreground">Referrals marked as urgent</p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

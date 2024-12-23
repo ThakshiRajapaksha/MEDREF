@@ -1,40 +1,43 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
+'use client';
 
-interface Column {
-  key: string;
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import { Button } from '../components/ui/button'; // Adjust the import path as necessary
+
+interface Column<T> {
+  key: string; // Allow nested keys
   label: string;
 }
 
-interface Referral {
-  id: number;
-  patient: {
-    first_name: string;
-    last_name: string;
-  };
-  test_type: string;
-  lab_name: string;
-}
-
-interface TableProps {
-  columns: Column[];
-  data: Referral[];
+interface TableProps<T> {
+  columns: Column<T>[];
+  data: T[];
   role: 'Admin' | 'Doctor' | 'Lab-technician';
 }
 
-const Table = ({ columns, data = [], role }: TableProps) => {
+// Utility function to resolve nested values
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+};
+
+const Table = <T,>({ columns, data = [], role }: TableProps<T>) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const router = useRouter(); // Use Next.js router
+  const router = useRouter();
+  const params = useParams();
+  const doctorId = role === 'Doctor' ? params.id : null;
+
+  useEffect(() => {
+    console.log('doctorId:', doctorId);
+  }, [doctorId]);
 
   const filteredData = data.filter((row) =>
     columns.some((column) => {
-      const value = (row as unknown as Record<string, unknown>)[column.key];
-      if (column.key === 'patient' && typeof value === 'object' && value !== null) {
-        const patient = value as Referral['patient'];
-        const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
-        return fullName.includes(searchTerm.toLowerCase());
-      }
-      return typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase());
+      const value = getNestedValue(row, column.key);
+      return (
+        typeof value === 'string' &&
+        value.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     })
   );
 
@@ -45,7 +48,9 @@ const Table = ({ columns, data = [], role }: TableProps) => {
         path = `/Dashboard/Admin/Patient/${id}`;
         break;
       case 'Doctor':
-        path = `/Dashboard/Doctor/Patient/${id}`;
+        if (doctorId) {
+          path = `/Dashboard/Doctor/${doctorId}/Patient/${id}`;
+        }
         break;
       case 'Lab-technician':
         path = `/Dashboard/Lab-technician/Referral/${id}`;
@@ -53,16 +58,8 @@ const Table = ({ columns, data = [], role }: TableProps) => {
       default:
         path = '/';
     }
-    router.push(path); // Use Next.js navigation
-  };
-
-  const getCellValue = (
-    value: string | number | { first_name: string; last_name: string }
-  ): React.ReactNode => {
-    if (typeof value === 'object' && value !== null && 'first_name' in value && 'last_name' in value) {
-      return `${value.first_name} ${value.last_name}`;
-    }
-    return value ?? '-';
+    console.log('Navigating to:', path);
+    router.push(path);
   };
 
   return (
@@ -89,26 +86,33 @@ const Table = ({ columns, data = [], role }: TableProps) => {
           </thead>
           <tbody>
             {filteredData.length > 0 ? (
-              filteredData.map((row) => (
-                <tr key={row.id}>
+              filteredData.map((row, index) => (
+                <tr key={index}>
                   {columns.map((column) => (
-                    <td key={column.key} className="py-2 px-4 border-b text-center">
-                      {getCellValue(row[column.key as keyof Referral])}
+                    <td
+                      key={column.key}
+                      className="py-2 px-4 border-b text-center"
+                    >
+                      {getNestedValue(row, column.key) || '-'}
                     </td>
                   ))}
                   <td className="py-2 px-4 border-b text-center">
-                    <button
-                      onClick={() => handleViewClick(row.id)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-1 rounded"
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleViewClick((row as any).id)}
                     >
                       View
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length + 1} className="text-center py-4 text-gray-500">
+                <td
+                  colSpan={columns.length + 1}
+                  className="text-center py-4 text-gray-500"
+                >
                   No data found
                 </td>
               </tr>

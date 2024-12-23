@@ -12,8 +12,6 @@ export async function POST(req: Request) {
       contact,
       medicalHistory,
       adminId,
-      illnesses,
-      allergies,
     } = await req.json();
 
     if (!first_name || !last_name || !age || !gender || !contact || !adminId) {
@@ -32,8 +30,6 @@ export async function POST(req: Request) {
         contact,
         medicalHistory: medicalHistory || '',
         createdById: adminId,
-        illnesses: illnesses || null,  // Default to null if not provided
-        allergies: allergies || null,
       },
     });
 

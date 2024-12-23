@@ -1,63 +1,100 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '../../../lib/prisma'; // Corrected import path to use relative path to lib/prisma.ts
+import { prisma } from '../../../lib/prisma';
 
-interface Patient {
-  first_name: string;
-  last_name: string;
-}
-
-interface TestType {
-  name: string;
-}
-
-interface Lab {
-  name: string;
-}
-
-interface Referral {
+interface ReferralResponse {
   id: number;
-  patient: Patient;
-  test_type: TestType;
-  lab_name: Lab;
+  patient: {
+    first_name: string;
+    last_name: string;
+  };
+  test_type: string;
+  lab_name: string;
+  user: {
+    first_name: string | null;
+    last_name: string;
+  };
+  status: string;
+  illness?: string | null;
+  allergies?: string | null;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Fetch referrals, including related test and lab data
+    const { searchParams } = new URL(request.url);
+    const doctorId = searchParams.get('doctorId'); // Extract the doctorId from query parameters
+
+    if (!doctorId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'doctorId query parameter is required.',
+        },
+        { status: 400 }
+      );
+    }
+
+    // Fetch referrals filtered by doctorId
     const referrals = await prisma.referral.findMany({
+      where: {
+        doctorId: parseInt(doctorId), // Ensure the doctorId is parsed as an integer
+      },
       include: {
-        patient: true, // Include patient information (first_name, last_name)
+        patient: {
+          select: {
+            first_name: true,
+            last_name: true,
+          },
+        },
         test: {
           select: {
-            name: true, // Fetch the name of the test from TestType
+            name: true,
           },
         },
         lab: {
           select: {
-            name: true, // Fetch the name of the lab from Lab
+            name: true,
+          },
+        },
+        doctor: {
+          select: {
+            first_name: true,
+            last_name: true,
           },
         },
       },
     });
 
-    // Return the response with the correct fields
-    return NextResponse.json({
-      success: true,
-      referrals: referrals.map((referral: { id: any; patient: { first_name: any; last_name: any; }; test: { name: any; }; lab: { name: any; }; }) => ({
+    const formattedReferrals: ReferralResponse[] = referrals.map(
+      (referral) => ({
         id: referral.id,
         patient: {
           first_name: referral.patient.first_name,
           last_name: referral.patient.last_name,
         },
-        test_type: referral.test.name, // Access test type name
-        lab_name: referral.lab.name,  // Access lab name
-      })),
+        test_type: referral.test.name,
+        lab_name: referral.lab.name,
+        user: {
+          first_name: referral.doctor.first_name,
+          last_name: referral.doctor.last_name,
+        },
+        status: referral.status,
+        illness: referral.illness || null,
+        allergies: referral.allergies || null,
+      })
+    );
+
+    return NextResponse.json({
+      success: true,
+      referrals: formattedReferrals,
     });
   } catch (error) {
     console.error('Error fetching referrals:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'Error fetching referrals',
-    });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Error fetching referrals',
+      },
+      { status: 500 }
+    );
   }
 }

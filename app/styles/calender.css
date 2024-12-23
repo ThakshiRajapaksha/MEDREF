@@ -1,0 +1,27 @@
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 columns for days of the week */
+    gap: 0.5rem; /* Adjust spacing between cells */
+  }
+  
+  .header-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    justify-items: center;
+  }
+  
+  .day {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    text-align: center;
+  }
+  
+  .month-header {
+    text-align: center;
+    font-size: 1.25rem;
+    font-weight: bold;
+  }
+
+  
