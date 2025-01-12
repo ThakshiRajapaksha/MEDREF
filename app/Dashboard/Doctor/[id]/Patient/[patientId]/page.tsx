@@ -162,7 +162,7 @@ export default function DoctorPatientUpdateForm() {
   };
 
   const handleViewPatients = () => {
-    router.push(`/Dashboard/Doctor/${doctorId}/Referrals`);
+    router.push(`/Dashboard/Doctor/${doctorId}/ReferralTable`);
   };
 
   return (

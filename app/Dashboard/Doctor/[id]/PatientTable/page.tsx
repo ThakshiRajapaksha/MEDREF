@@ -1,50 +1,51 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Table from '../../../../components/table';
 
 interface Patient {
-  id: number;
+  id: string;
   first_name: string;
   last_name: string;
   medicalHistory: string;
-  createdBy: {
-    first_name: string;
-    last_name: string;
-  };
 }
 
 const PatientTable = () => {
-  const [patients, setPatients] = useState<Patient[]>([]); // Changed state type to Patient[]
+  const { id: doctorId } = useParams();
+  const router = useRouter(); // Initialize the router
+
+  const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/patients')  // Call your API route
-      .then((response) => response.json())
-      .then((data) => {
-        console.log('Fetched patient data:', data);
-        if (Array.isArray(data.patients)) {
-          setPatients(data.patients);
-        } else {
-          setError('Expected array of patients but received something else.');
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching patients:', error);
-        setError('Error fetching patients');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+    if (doctorId) {
+      fetch(`/api/patients?doctorId=${doctorId}`) // Call your API route for patients
+        .then((response) => response.json())
+        .then((data) => {
+          console.log('Fetched patient data:', data); // Log the response data
+          if (data.success && Array.isArray(data.patients)) {
+            setPatients(data.patients);
+          } else {
+            setError('Unexpected response format');
+          }
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error('Error fetching patient data:', error);
+          setError(error.message);
+          setLoading(false);
+        });
+    }
+  }, [doctorId]);
 
-  if (loading) {
-    return <div>Loading patient data...</div>;
-  }
+  const handleViewClick = (id: string) => {
+    const path = `/Dashboard/Doctor/${doctorId}/Patient/${id}`;
+    router.push(path);
+  };
 
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   // Define columns based on Patient type
   const columns: { key: keyof Patient; label: string }[] = [
@@ -58,7 +59,7 @@ const PatientTable = () => {
       <Table
         columns={columns}
         data={patients} // Pass the fetched patient data
-        role="Doctor"
+        handleViewClick={handleViewClick} // Pass the handleViewClick function
       />
     </div>
   );

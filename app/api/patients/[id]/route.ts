@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { Readable } from 'stream';
+import formidable from 'formidable';
+import fs from 'fs';
 
 // GET handler to fetch patient details by ID
 export async function GET(
@@ -46,111 +49,100 @@ export async function GET(
   }
 }
 
-// PUT handler to update patient details and create a referral
-export async function PUT(req: Request, context: { params: { id: string } }) {
-  try {
-    const { id } = await context.params; // Extract the dynamic route parameter
-    const patientId = parseInt(id, 10); // Convert it to an integer
-    if (isNaN(patientId)) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid patient ID' },
-        { status: 400 }
-      );
-    }
+// Configure formidable
+const form = formidable({
+  multiples: false,
+  uploadDir: './uploads/temp', // Directory to store uploaded files
+  keepExtensions: true, // Preserve file extensions
+});
 
-    const data = await req.json();
-    const {
-      first_name,
-      last_name,
-      illness,
-      allergies,
-      test_type, // Expected to be the name of the test
-      lab, // Expected to be the name of the lab
-      referral_status,
-      medical_history,
-      doctorId,
-    } = data;
+if (!fs.existsSync('./uploads/temp')) {
+  fs.mkdirSync('./uploads/temp', { recursive: true });
+}
 
-    // Ensure doctorId is provided and valid
-    if (!doctorId) {
-      return NextResponse.json(
-        { success: false, message: 'Doctor ID is required' },
-        { status: 400 }
-      );
-    }
+export async function PUT(
+  request: Request,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;
 
-    const parsedDoctorId = parseInt(doctorId, 10);
-    if (isNaN(parsedDoctorId)) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid Doctor ID' },
-        { status: 400 }
-      );
-    }
-
-    // Verify the doctor exists
-    const doctor = await prisma.user.findUnique({
-      where: { id: parsedDoctorId },
-    });
-    if (!doctor) {
-      return NextResponse.json(
-        { success: false, message: 'Doctor not found' },
-        { status: 404 }
-      );
-    }
-
-    // Verify the lab exists by name
-    const labRecord = await prisma.lab.findFirst({
-      where: { name: lab },
-    });
-    if (!labRecord) {
-      return NextResponse.json(
-        { success: false, message: 'Lab not found' },
-        { status: 404 }
-      );
-    }
-
-    // Verify the test type exists by name
-    const testExists = await prisma.testType.findFirst({
-      where: { name: test_type },
-    });
-    if (!testExists) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid test name' },
-        { status: 400 }
-      );
-    }
-
-    // Update the patient details
-    const updatedPatient = await prisma.patient.update({
-      where: { id: patientId },
-      data: {
-        first_name,
-        last_name,
-        medicalHistory: medical_history,
-      },
-    });
-
-    // Create a referral
-    const createdReferral = await prisma.referral.create({
-      data: {
-        patient: { connect: { id: patientId } },
-        test: { connect: { id: testExists.id } },
-        lab: { connect: { id: labRecord.id } },
-        status: referral_status,
-        illness: illness || null,
-        allergies: allergies || null,
-        doctor: { connect: { id: parsedDoctorId } },
-      },
-    });
-
+  if (!id) {
     return NextResponse.json(
-      { success: true, patient: updatedPatient, referral: createdReferral },
-      { status: 200 }
+      { success: false, message: 'ID is required' },
+      { status: 400 }
     );
-  } catch (error) {
-    console.error('Error updating patient:', error);
+  }
+
+  const parsedId = parseInt(id);
+  if (isNaN(parsedId)) {
     return NextResponse.json(
-      { success: false, message: 'Error updating patient data.' },
+      { success: false, message: 'Invalid referral ID' },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const arrayBuffer = await request.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const reqStream = Readable.from(buffer);
+
+    const headers = {
+      'content-length': buffer.length,
+      ...Object.fromEntries(request.headers.entries()),
+    };
+    (reqStream as any).headers = headers;
+
+    // Parse the form data
+    const { files } = await new Promise<{ files: any }>((resolve, reject) => {
+      form.parse(reqStream as any, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve({ files });
+      });
+    });
+
+    const uploadedFile = files?.test_report ? files.test_report[0] : null;
+    if (!uploadedFile || !uploadedFile.filepath) {
+      return NextResponse.json(
+        { success: false, message: 'No file uploaded or invalid file key.' },
+        { status: 400 }
+      );
+    }
+
+    const allowedTypes = ['application/pdf'];
+    if (!allowedTypes.includes(uploadedFile.mimetype)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Invalid file type. Only PDF files are allowed.',
+        },
+        { status: 400 }
+      );
+    }
+
+    const tempPath = uploadedFile.filepath; // Path to the uploaded file
+    const fileName = uploadedFile.originalFilename; // Original file name
+
+    console.log('File saved at path:', tempPath);
+    console.log('File name:', fileName);
+
+    // Save the file path and name to the database
+    await prisma.referral.update({
+      where: { id: parsedId },
+      data: {
+        status: 'Completed', // Update status or any other fields as needed
+        filePath: tempPath, // Save the file path
+        test_report_filename: fileName, // Save the file name
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'File path and name saved to the database successfully.',
+    });
+  } catch (error) {
+    console.error('Error processing file upload:', error);
+    return NextResponse.json(
+      { success: false, message: 'Error processing file upload.' },
       { status: 500 }
     );
   }

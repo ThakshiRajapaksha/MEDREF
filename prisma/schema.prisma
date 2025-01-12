@@ -7,27 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model for user table schema
-model User {
-  id         Int      @id @default(autoincrement())
-  first_name String?  @db.VarChar(255)
-  last_name  String   @db.VarChar(255)
-  mobile     String   @db.VarChar(255)
-  email      String   @unique
-  password   String
-  role       Role     @relation(fields: [roleId], references: [id])
-  patients   Patient[]
-  roleId     Int
-  referrals  Referral[] @relation("DoctorReferrals")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt()
-}
-
-// Role model (Doctor, Technician, Admin)
-model Role {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  users User[]
+model Lab {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique
+  referrals Referral[]
+  testtype TestType[]
 }
 
 model Patient {
@@ -45,20 +29,30 @@ model Patient {
 }
 
 model Referral {
-  id           Int       @id @default(autoincrement())
-  patientId    Int
-  testId       Int
-  labId        Int
-  doctorId     Int
-  patient      Patient   @relation(fields: [patientId], references: [id])
-  test         TestType  @relation(fields: [testId], references: [id])
-  lab          Lab       @relation(fields: [labId], references: [id])
-  doctor       User      @relation("DoctorReferrals", fields: [doctorId], references: [id])
-  status       String    @default("Pending")
-  illness      String?   
-  allergies    String?  
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                   Int      @id @default(autoincrement())
+  patientId            Int
+  testId               Int
+  labId                Int
+  doctorId             Int
+  status               String   @default("Pending")
+  allergies            String?
+  illness              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @default(now())
+  iv                   Bytes?
+  filePath             String?
+  test_report          Bytes?
+  test_report_filename String?
+  doctor               User @relation("DoctorReferrals", fields: [doctorId], references: [id])
+  lab                  Lab      @relation(fields: [labId], references: [id])
+  patient              Patient  @relation(fields: [patientId], references: [id])
+  test                 TestType @relation(fields: [testId], references: [id])
+}
+
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  users User[]
 }
 
 model TestType {
@@ -69,9 +63,17 @@ model TestType {
   referrals  Referral[] 
 }
 
-model Lab {
-  id         Int        @id @default(autoincrement())
-  name       String     @unique
-  testTypes  TestType[] 
-  referrals  Referral[] 
+model User {
+  id         Int      @id @default(autoincrement())
+  first_name String?  @db.VarChar(255)
+  last_name  String   @db.VarChar(255)
+  mobile     String   @db.VarChar(255)
+  email      String   @unique
+  password   String
+  role       Role     @relation(fields: [roleId], references: [id])
+  patients   Patient[]
+  roleId     Int
+  referrals  Referral[] @relation("DoctorReferrals")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt()
 }

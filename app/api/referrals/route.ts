@@ -65,7 +65,7 @@ export async function GET(request: Request) {
     });
 
     const formattedReferrals: ReferralResponse[] = referrals.map(
-      (referral) => ({
+      (referral: any) => ({
         id: referral.id,
         patient: {
           first_name: referral.patient.first_name,

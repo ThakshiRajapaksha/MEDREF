@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma'; // Adjust the import path if needed
 
-export async function GET(request: Request, context: { params: { id: string } }) {
+export async function GET(
+  request: Request,
+  context: { params: { id: string } }
+) {
   try {
     // Await context.params.id to resolve it properly
-    const { id } = await context.params;  // Use await to ensure params are resolved
+    const { id } = await context.params;
 
     if (!id) {
       return NextResponse.json(
@@ -39,7 +42,11 @@ export async function GET(request: Request, context: { params: { id: string } })
   } catch (error: any) {
     console.error('Error fetching user data:', error.message);
     return NextResponse.json(
-      { success: false, message: 'Internal server error', error: error.message },
+      {
+        success: false,
+        message: 'Internal server error',
+        error: error.message,
+      },
       { status: 500 }
     );
   }

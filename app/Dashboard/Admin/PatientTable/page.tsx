@@ -1,46 +1,49 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import Table from '../../../components/table';
 
-// Define the Patient interface with the required fields
 interface Patient {
-  id: number;
+  id: string;
   first_name: string;
   last_name: string;
   age: number;
   gender: string;
-  contact: string; // Ensure this matches the API response
-  medicalHistory: string; // Ensure this matches the API response
+  contact: string;
+  medicalHistory: string;
 }
 
-export default function PatientData() {
+const PatientTable = () => {
+  const router = useRouter(); // Initialize the router
+
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchPatients() {
-      setLoading(true);
+    const fetchPatients = async () => {
       try {
         const response = await fetch('/api/patients');
         const data = await response.json();
-        console.log('Fetched Patients:', data);
         if (data.success && Array.isArray(data.patients)) {
-          setPatients(data.patients); // Store fetched patients in state
-          console.log('Patients set:', data.patients); // Log the patients array
+          setPatients(data.patients);
         } else {
-          console.error(
-            'Fetched data does not contain a patients array:',
-            data
-          );
+          setError('Unexpected response format');
         }
       } catch (error) {
         console.error('Failed to fetch patients:', error);
+        setError('Failed to fetch patients.');
       } finally {
         setLoading(false);
       }
-    }
+    };
     fetchPatients();
   }, []);
+
+  const handleViewClick = (id: number) => {
+    const path = `/Dashboard/Admin/Patient/${id}`;
+    router.push(path);
+  };
 
   // Define columns for the patient table
   const patientColumns = [
@@ -57,8 +60,15 @@ export default function PatientData() {
       {loading ? (
         <p>Loading...</p>
       ) : (
-        <Table columns={patientColumns} data={patients} role={'Admin'} />
+        <Table
+          columns={patientColumns}
+          data={patients}
+          handleViewClick={handleViewClick}
+        />
       )}
+      {error && <p>{error}</p>}
     </>
   );
-}
+};
+
+export default PatientTable;
