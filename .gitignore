@@ -43,3 +43,5 @@ prisma/migrations
 
 # Ignore Prisma Client binary
 prisma/.client
+
+uploads/

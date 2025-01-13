@@ -1,14 +1,17 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
-export async function GET(
-  request: Request,
-  context: { params: { id: string; referralId: string } } // Corrected dynamic route param keys
-) {
-  const { id: labId, referralId } = await context.params; // Access params directly
+type RouteContext = {
+  params: {
+    id: string;
+    referralId: string;
+  };
+};
 
-  const labIdInt = parseInt(labId); // Parse the lab ID
-  const referralIdInt = parseInt(referralId); // Parse the referral ID
+export async function GET(request: NextRequest, context: RouteContext) {
+  const { id: labId, referralId } = context.params;
+  const labIdInt = parseInt(labId, 10);
+  const referralIdInt = parseInt(referralId, 10);
 
   if (isNaN(labIdInt) || isNaN(referralIdInt)) {
     return NextResponse.json(
@@ -18,7 +21,6 @@ export async function GET(
   }
 
   try {
-    // Fetch the referral by its ID and lab ID
     const referral = await prisma.referral.findFirst({
       where: {
         id: referralIdInt,
@@ -45,7 +47,6 @@ export async function GET(
       },
     });
 
-    // If the referral doesn't exist
     if (!referral) {
       return NextResponse.json(
         { success: false, message: 'Referral not found' },
@@ -53,10 +54,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      referral,
-    });
+    return NextResponse.json({ success: true, referral });
   } catch (error) {
     console.error('Error fetching referral:', error);
     return NextResponse.json(

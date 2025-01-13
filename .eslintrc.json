@@ -1,26 +1,43 @@
 {
   "env": {
     "browser": true,
-    "es2021": true
+    "es2021": true,
+    "node": true
   },
   "extends": [
-    "next/core-web-vitals",
-    "next/typescript",
     "eslint:recommended",
+    "next/core-web-vitals",
+    "plugin:react/recommended",
+    "plugin:@typescript-eslint/recommended",
     "plugin:@next/next/recommended",
-    "plugin:prettier/recommended",
-    "plugin:react/recommended"
+    "plugin:prettier/recommended"
   ],
-  "plugins": ["prettier"],
+  "plugins": ["react", "@typescript-eslint", "react-hooks", "prettier", "next"],
+  "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
     },
-    "ecmaVersion": 12,
-    "sourceType": "module"
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "project": "./tsconfig.json"
   },
   "rules": {
     "prettier/prettier": ["error", { "endOfLine": "auto" }],
-    "react/react-in-jsx-scope": "off"
-  }
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/rules-of-hooks": "error", // Validates rules of Hooks
+    "react-hooks/exhaustive-deps": "warn", // Warns about missing dependencies
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_" }
+    ],
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/no-explicit-any": "warn"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "ignorePatterns": [".next/", "node_modules/", "public/"]
 }
