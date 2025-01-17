@@ -22,6 +22,7 @@ import { Label } from '../../../../../components/ui/label';
 
 export default function DoctorPatientUpdateForm() {
   const { id: doctorId, patientId } = useParams();
+  const [activeTab, setActiveTab] = useState<string>('form');
   const router = useRouter();
 
   interface Lab {
@@ -143,13 +144,14 @@ export default function DoctorPatientUpdateForm() {
           lab: formData.lab,
           referral_status: 'Pending',
           medical_history: formData.medical_history,
+          updatedById: doctorId,
           doctorId: doctorId,
         }),
       });
 
       if (res.ok) {
         alert('Patient data updated successfully!');
-        router.push(`/Dashboard/Doctor/${doctorId}/Referrals`);
+        setActiveTab('list');
       } else {
         const { message } = await res.json();
         setErrorMessage(message || 'Failed to update patient data.');
@@ -168,7 +170,7 @@ export default function DoctorPatientUpdateForm() {
   return (
     <div className="flex flex-col justify-start min-h-screen bg-gray-100 p-4 md:p-8">
       <div className="w-full max-w-4xl p-8 shadow-lg rounded-lg">
-        <Tabs defaultValue="form" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="flex justify-start">
             <TabsTrigger value="form">Form</TabsTrigger>
             <TabsTrigger value="list">List</TabsTrigger>

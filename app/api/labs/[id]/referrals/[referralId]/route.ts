@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { promises } from 'dns';
 
 type RouteContext = {
-  params: {
+  params: Promise<{
     id: string;
     referralId: string;
-  };
+  }>;
 };
 
 export async function GET(request: NextRequest, context: RouteContext) {
-  const { id: labId, referralId } = context.params;
+  const { id: labId, referralId } = await context.params;
   const labIdInt = parseInt(labId, 10);
   const referralIdInt = parseInt(referralId, 10);
 

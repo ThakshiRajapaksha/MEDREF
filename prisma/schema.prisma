@@ -26,6 +26,8 @@ model Patient {
   referrals     Referral[] // Update this to be the only reference for illnesses and allergies
   createdById   Int
   createdAt     DateTime @default(now())
+  updatedById   Int?
+  updatedBy     User? @relation("UserUpdates", fields: [updatedById], references: [id])
 }
 
 model Referral {
@@ -76,4 +78,5 @@ model User {
   referrals  Referral[] @relation("DoctorReferrals")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt()
+  updatedPatients Patient[] @relation("UserUpdates")
 }

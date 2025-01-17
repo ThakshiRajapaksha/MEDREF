@@ -56,7 +56,7 @@ const ReferralTable = () => {
     };
 
     fetchReferrals();
-  }, [doctorId]);
+  }, []);
 
   const handleViewClick = async (referralId: string) => {
     try {

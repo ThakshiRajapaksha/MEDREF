@@ -36,6 +36,7 @@ export default function DoctorPatientUpdateForm() {
   }
 
   const [testTypes, setTestTypes] = useState<TestType[]>([]);
+  const [labsForSelectedTest, setLabsForSelectedTest] = useState<Lab[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedTestType, setSelectedTestType] = useState<string>('');
@@ -62,7 +63,7 @@ export default function DoctorPatientUpdateForm() {
       return await response.json();
     } catch (error) {
       console.error(errorMsg, error);
-      throw error;
+      setErrorMessage(errorMsg);
     }
   };
 
@@ -79,17 +80,19 @@ export default function DoctorPatientUpdateForm() {
           'Failed to fetch patient data'
         );
 
-        setValue('first_name', patientData.patient.first_name || '');
-        setValue('last_name', patientData.patient.last_name || '');
-        setValue('medical_history', patientData.patient.medicalHistory || '');
-        setValue('illness', referralData.referral.illness || '');
-        setValue('allergies', referralData.referral.allergies || '');
-        setValue('test_type', referralData.referral.test_type || '');
-        setValue('lab', referralData.referral.lab_name || '');
-        setValue('referral_status', referralData.referral.status || '');
+        if (referralData && patientData) {
+          setValue('first_name', patientData.patient.first_name || '');
+          setValue('last_name', patientData.patient.last_name || '');
+          setValue('medical_history', patientData.patient.medicalHistory || '');
+          setValue('illness', referralData.referral.illness || '');
+          setValue('allergies', referralData.referral.allergies || '');
+          setValue('test_type', referralData.referral.test_type || '');
+          setValue('lab', referralData.referral.lab_name || '');
+          setValue('referral_status', referralData.referral.status || '');
 
-        setSelectedTestType(referralData.referral.test_type || '');
-        setSelectedLab(referralData.referral.lab_name || '');
+          setSelectedTestType(referralData.referral.test_type || '');
+          setSelectedLab(referralData.referral.lab_name || '');
+        }
       } catch (error) {
         setErrorMessage('Failed to fetch data.');
       }
@@ -113,10 +116,23 @@ export default function DoctorPatientUpdateForm() {
       });
   }, []);
 
+  // Update labs when the test type changes
+  useEffect(() => {
+    if (selectedTestType) {
+      const selectedTest = testTypes.find(
+        (test) => test.name === selectedTestType
+      );
+      if (selectedTest && selectedTest.lab) {
+        setLabsForSelectedTest([selectedTest.lab]); // Only one lab for the selected test type
+        setSelectedLab(selectedTest.lab.name); // Set lab to selected test's lab
+        setValue('lab', selectedTest.lab.name); // Update form field value for lab
+      }
+    }
+  }, [selectedTestType, testTypes, setValue]);
+
   const onSubmit = async (formData: any) => {
     setIsSubmitting(true);
     try {
-      // Find the test ID and lab ID corresponding to the selected test and lab
       const selectedTest = testTypes.find(
         (test) => test.name === formData.test_type
       );
@@ -127,7 +143,8 @@ export default function DoctorPatientUpdateForm() {
         return;
       }
 
-      // Modify the API endpoint to update the referral
+      const role = 'doctor';
+
       const res = await fetch(`/api/referrals/${referralId}`, {
         method: 'PUT',
         headers: {
@@ -136,10 +153,11 @@ export default function DoctorPatientUpdateForm() {
         body: JSON.stringify({
           illness: formData.illness,
           allergies: formData.allergies,
-          test_id: selectedTest.id, // Use the test_id
-          lab_id: selectedLab.id, // Use the lab_id
+          test_id: selectedTest.id,
+          lab_id: selectedLab.id,
           referral_status: formData.referral_status,
-          medical_history: formData.medical_history, // Assuming this is part of the referral data
+          medical_history: formData.medical_history,
+          role: role, // Sending the role in the body
         }),
       });
 
@@ -226,8 +244,8 @@ export default function DoctorPatientUpdateForm() {
                     <Select
                       value={selectedTestType}
                       onValueChange={(value) => {
-                        setSelectedTestType(value);
-                        field.onChange(value);
+                        setSelectedTestType(value); // Update the selected test type
+                        field.onChange(value); // Update form value for test type
                       }}
                     >
                       <SelectTrigger className="w-full p-2">
@@ -244,6 +262,7 @@ export default function DoctorPatientUpdateForm() {
                   )}
                 />
               </div>
+
               <div>
                 <Label htmlFor="lab">Lab</Label>
                 <Controller
@@ -253,25 +272,20 @@ export default function DoctorPatientUpdateForm() {
                     <Select
                       value={selectedLab}
                       onValueChange={(value) => {
-                        setSelectedLab(value);
-                        field.onChange(value);
+                        setSelectedLab(value); // Manually update the selected lab if necessary
+                        field.onChange(value); // Update form value for lab
                       }}
+                      disabled // Disable manual selection of lab
                     >
                       <SelectTrigger className="w-full p-2">
                         <SelectValue placeholder="Select a lab" />
                       </SelectTrigger>
                       <SelectContent>
-                        {testTypes
-                          .map((testType) => testType.lab)
-                          .filter(
-                            (lab, index, self) =>
-                              self.findIndex((l) => l.id === lab.id) === index
-                          ) // Remove duplicate labs
-                          .map((lab) => (
-                            <SelectItem key={lab.id} value={lab.name}>
-                              {lab.name}
-                            </SelectItem>
-                          ))}
+                        {labsForSelectedTest.map((lab) => (
+                          <SelectItem key={lab.id} value={lab.name}>
+                            {lab.name}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   )}

@@ -77,9 +77,7 @@ export default function PatientRegisterForm() {
     e.preventDefault();
 
     if (!adminId || !patientId) {
-      setErrorMessage(
-        'Admin ID or Patient ID is missing. Cannot update patient.'
-      );
+      setErrorMessage('Admin ID or Patient ID is missing.');
       return;
     }
 
@@ -87,19 +85,26 @@ export default function PatientRegisterForm() {
     setErrorMessage('');
 
     try {
+      const updatedData = {
+        ...formData,
+        adminId: parseInt(adminId as string),
+        age: parseInt(formData.age, 10),
+      };
+
       const res = await fetch(`/api/patients/${patientId}`, {
-        method: 'PUT', // Update patient data
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
-          adminId: parseInt(adminId as string), // Include adminId in the request
+          ...updatedData,
+          updatedById: parseInt(adminId as string), // Ensure updatedById is sent
         }),
       });
 
       if (res.ok) {
         alert('Patient data updated successfully!');
+        router.push(`/Dashboard/Admin/${adminId}/PatientTable`);
       } else {
         const { message } = await res.json();
         setErrorMessage(message || 'Failed to update patient data.');
@@ -109,10 +114,6 @@ export default function PatientRegisterForm() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleViewPatients = () => {
-    router.push(`/Dashboard/Admin/${adminId}/PatientTable`); // Corrected route
   };
 
   return (

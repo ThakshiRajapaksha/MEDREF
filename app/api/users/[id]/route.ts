@@ -3,7 +3,7 @@ import prisma from '@/lib/prisma'; // Adjust the import path if needed
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
     // Await context.params.id to resolve it properly

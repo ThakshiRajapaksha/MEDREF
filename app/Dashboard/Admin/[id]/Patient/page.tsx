@@ -108,114 +108,116 @@ export default function PatientRegisterForm() {
   };
 
   return (
-    <div className="flex flex-col justify-center min-h-screen bg-gray-100 p-4 md:p-8">
-      <Tabs defaultValue="addPatient">
-        <TabsList>
-          <TabsTrigger value="addPatient">Add Patient</TabsTrigger>
-          <TabsTrigger value="updatePatient">Update Patient</TabsTrigger>
-        </TabsList>
+    <div className="flex flex-col justify-start min-h-screen bg-gray-100 p-4 md:p-8">
+      <div className="w-full max-w-4xl p-8 shadow-lg rounded-lg">
+        <Tabs defaultValue="addPatient">
+          <TabsList>
+            <TabsTrigger value="addPatient">Add Patient</TabsTrigger>
+            <TabsTrigger value="updatePatient">Update Patient</TabsTrigger>
+          </TabsList>
 
-        {/* Add Patient Tab */}
-        <TabsContent value="addPatient">
-          <div className="w-full max-w-lg p-8 bg-white shadow-lg rounded-lg">
-            <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
-              Register New Patient
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="first_name">First Name</Label>
-                <Input
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  value={formData.first_name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input
-                  id="last_name"
-                  name="last_name"
-                  type="text"
-                  value={formData.last_name}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  name="age"
-                  type="number"
-                  value={formData.age}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="gender">Gender</Label>
-                <Select
-                  value={formData.gender}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, gender: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select gender" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="contact">Contact Number</Label>
-                <Input
-                  id="contact"
-                  name="contact"
-                  type="text"
-                  value={formData.contact}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="medicalHistory">Medical History</Label>
-                <Textarea
-                  id="medicalHistory"
-                  name="medicalHistory"
-                  value={formData.medicalHistory}
-                  onChange={handleChange}
-                  rows={4}
-                />
-              </div>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Registering...' : 'Register Patient'}
+          {/* Add Patient Tab */}
+          <TabsContent value="addPatient">
+            <div className="w-full max-w-lg p-8 bg-white shadow-lg rounded-lg">
+              <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
+                Register New Patient
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Label htmlFor="first_name">First Name</Label>
+                  <Input
+                    id="first_name"
+                    name="first_name"
+                    type="text"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="last_name">Last Name</Label>
+                  <Input
+                    id="last_name"
+                    name="last_name"
+                    type="text"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="age">Age</Label>
+                  <Input
+                    id="age"
+                    name="age"
+                    type="number"
+                    value={formData.age}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="gender">Gender</Label>
+                  <Select
+                    value={formData.gender}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, gender: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="contact">Contact Number</Label>
+                  <Input
+                    id="contact"
+                    name="contact"
+                    type="text"
+                    value={formData.contact}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="medicalHistory">Medical History</Label>
+                  <Textarea
+                    id="medicalHistory"
+                    name="medicalHistory"
+                    value={formData.medicalHistory}
+                    onChange={handleChange}
+                    rows={4}
+                  />
+                </div>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? 'Registering...' : 'Register Patient'}
+                </Button>
+                {errorMessage && (
+                  <p className="text-red-500 mt-2">{errorMessage}</p>
+                )}
+              </form>
+            </div>
+          </TabsContent>
+
+          {/* Update Patient Tab */}
+          <TabsContent value="updatePatient">
+            <div className="w-full max-w-lg p-8 bg-white shadow-lg rounded-lg">
+              <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
+                Go to patients list
+              </h2>
+              <Button onClick={handleViewPatients} className="mb-4 p-2">
+                View patients
               </Button>
-              {errorMessage && (
-                <p className="text-red-500 mt-2">{errorMessage}</p>
-              )}
-            </form>
-          </div>
-        </TabsContent>
-
-        {/* Update Patient Tab */}
-        <TabsContent value="updatePatient">
-          <div className="w-full max-w-lg p-8 bg-white shadow-lg rounded-lg">
-            <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
-              Go to patients list
-            </h2>
-            <Button onClick={handleViewPatients} className="mb-4 p-2">
-              View patients
-            </Button>
-          </div>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

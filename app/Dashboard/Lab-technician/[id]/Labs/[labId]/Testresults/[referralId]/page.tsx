@@ -14,14 +14,14 @@ import {
 import axios from 'axios';
 
 export default function LabTechnicianReferralDetails() {
-  const { referralId } = useParams();
+  const { id: labtechnicianId, labId, referralId } = useParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('details');
 
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
-    medical_history: '',
+    medicalHistory: '',
     test_type: '',
     lab: '',
     referral_status: '',
@@ -44,7 +44,7 @@ export default function LabTechnicianReferralDetails() {
             setFormData({
               first_name: data.referral.patient.first_name || '',
               last_name: data.referral.patient.last_name || '',
-              medical_history: data.referral.patient.medical_history || '',
+              medicalHistory: data.referral.patient.medicalHistory || '',
               test_type: data.referral.test_type || '',
               lab: data.referral.lab || '',
               referral_status: data.referral.referral_status || '',
@@ -87,8 +87,6 @@ export default function LabTechnicianReferralDetails() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log('Handle Submit Triggered');
-
     if (!formData.test_report) {
       setErrorMessage('Please upload a valid test report.');
       return;
@@ -98,13 +96,12 @@ export default function LabTechnicianReferralDetails() {
     setErrorMessage('');
 
     try {
-      console.log('Selected File:', formData.test_report);
+      const role = 'labtechnician';
 
       const formDataToSend = new FormData();
+      formDataToSend.append('role', role);
       formDataToSend.append('status', 'Completed');
       formDataToSend.append('test_report', formData.test_report);
-
-      console.log(formDataToSend); // Log the FormData to see if it includes 'test_report'
 
       const res = await axios.put(
         `/api/referrals/${referralId}`,
@@ -130,16 +127,14 @@ export default function LabTechnicianReferralDetails() {
       setIsSubmitting(false);
     }
   };
-  function handleViewPatients(
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ): void {
-    event.preventDefault();
-    router.push('/dashboard/lab-technician/referrals');
-  }
+
+  const handleViewPatients = () => {
+    router.push(`/Dashboard/Lab-technician/${labtechnicianId}/Labs/${labId}`);
+  };
 
   return (
     <div className="flex flex-col justify-start min-h-screen bg-gray-100 p-4 md:p-8">
-      <Tabs defaultValue="details" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="details">Form</TabsTrigger>
           <TabsTrigger value="referral table">Submitted Referral</TabsTrigger>
@@ -172,10 +167,10 @@ export default function LabTechnicianReferralDetails() {
               </div>
 
               <div>
-                <Label htmlFor="medical_history">Medical History</Label>
+                <Label htmlFor="medicalHistory">Medical History</Label>
                 <Textarea
-                  id="medical_history"
-                  value={formData.medical_history}
+                  id="medicalHistory"
+                  value={formData.medicalHistory}
                   disabled
                   rows={4}
                   className="mt-1"

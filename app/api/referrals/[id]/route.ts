@@ -2,39 +2,7 @@ import { NextResponse } from 'next/server';
 import formidable from 'formidable';
 import fs from 'fs';
 import { Readable } from 'stream';
-import path from 'path';
-import crypto from 'crypto';
 import { prisma } from '@/lib/prisma';
-
-// Encryption configuration
-const algorithm = 'aes-256-cbc';
-const ivLength = 16; // AES block size
-
-const getEncryptionKey = (): Buffer => {
-  const rawKey = process.env.ENCRYPTION_KEY || 'default-fallback-key';
-  return Buffer.from(rawKey.padEnd(32, '*').slice(0, 32)); // Ensures 32 bytes
-};
-
-// Helper functions
-const encryptData = (data: Buffer): { encryptedData: Buffer; iv: Buffer } => {
-  const key = getEncryptionKey();
-  const iv = crypto.randomBytes(ivLength); // Generate a random IV
-  const cipher = crypto.createCipheriv(algorithm, key, iv);
-  const encryptedData = Buffer.concat([cipher.update(data), cipher.final()]);
-  return { encryptedData, iv };
-};
-
-const decryptData = (encryptedData: Buffer, iv: Buffer): Buffer => {
-  const key = getEncryptionKey();
-  const decipher = crypto.createDecipheriv(algorithm, key, iv);
-  return Buffer.concat([decipher.update(encryptedData), decipher.final()]);
-};
-
-// Interfaces
-interface FileWithPath {
-  filepath: string;
-  [key: string]: any; // Allows other properties to be included
-}
 
 interface ReferralResponse {
   id: number;
@@ -42,6 +10,7 @@ interface ReferralResponse {
     patientId: number;
     first_name: string;
     last_name: string;
+    medicalHistory?: string | null;
   };
   test_type: string;
   lab_name: string;
@@ -57,7 +26,7 @@ interface ReferralResponse {
 // GET: Fetch referral by ID
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
 
@@ -72,7 +41,14 @@ export async function GET(
     const referral = await prisma.referral.findUnique({
       where: { id: parseInt(id) },
       include: {
-        patient: { select: { id: true, first_name: true, last_name: true } },
+        patient: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+            medicalHistory: true,
+          },
+        },
         test: { select: { name: true } },
         lab: { select: { name: true } },
         doctor: { select: { first_name: true, last_name: true } },
@@ -92,6 +68,7 @@ export async function GET(
         patientId: referral.patient.id,
         first_name: referral.patient.first_name,
         last_name: referral.patient.last_name,
+        medicalHistory: referral.patient.medicalHistory || null,
       },
       test_type: referral.test.name,
       lab_name: referral.lab.name,
@@ -99,6 +76,7 @@ export async function GET(
         first_name: referral.doctor.first_name,
         last_name: referral.doctor.last_name,
       },
+
       status: referral.status,
       illness: referral.illness || null,
       allergies: referral.allergies || null,
@@ -114,16 +92,15 @@ export async function GET(
   }
 }
 
-// PUT: Update referral with file upload
 export async function PUT(
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
 
   if (!id) {
     return NextResponse.json(
-      { success: false, message: 'ID is required' },
+      { success: false, message: 'Referral ID is required' },
       { status: 400 }
     );
   }
@@ -137,6 +114,7 @@ export async function PUT(
   }
 
   try {
+    // Handle the incoming form data (file and other fields)
     const form = formidable({
       multiples: false,
       uploadDir: './uploads/temp',
@@ -157,58 +135,92 @@ export async function PUT(
     };
     (reqStream as any).headers = headers;
 
-    const { files } = await new Promise<{ files: any }>((resolve, reject) => {
-      form.parse(reqStream as any, (err, fields, files) => {
-        if (err) reject(err);
-        else resolve({ files });
+    // Parse the incoming form data
+    const { fields, files } = await new Promise<{ fields: any; files: any }>(
+      (resolve, reject) => {
+        form.parse(reqStream as any, (err, fields, files) => {
+          if (err) reject(err);
+          else resolve({ fields, files });
+        });
+      }
+    );
+
+    // Normalize fields (convert arrays to strings if necessary)
+    for (const key in fields) {
+      if (Array.isArray(fields[key])) {
+        fields[key] = fields[key][0]; // Take the first element of the array
+      }
+    }
+
+    const { role, illness, allergies, referral_status } = fields;
+
+    if (!role) {
+      return NextResponse.json(
+        { success: false, message: 'Role is required' },
+        { status: 400 }
+      );
+    }
+
+    if (role === 'doctor') {
+      const updatedReferral = await prisma.referral.update({
+        where: { id: parsedId },
+        data: {
+          illness: illness || undefined,
+          allergies: allergies || undefined,
+          status: referral_status || 'Pending',
+          updatedAt: new Date(),
+        },
       });
-    });
 
-    const uploadedFile = files?.test_report ? files.test_report[0] : null;
-    if (!uploadedFile || !uploadedFile.filepath) {
-      return NextResponse.json(
-        { success: false, message: 'No file uploaded or invalid file key.' },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: true,
+        referral: updatedReferral,
+        message: 'Referral updated successfully.',
+      });
     }
 
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
-    if (!allowedTypes.includes(uploadedFile.mimetype)) {
-      return NextResponse.json(
-        { success: false, message: 'Invalid file type.' },
-        { status: 400 }
-      );
+    if (role === 'labtechnician') {
+      const uploadedFile = files?.test_report ? files.test_report[0] : null;
+      if (!uploadedFile || !uploadedFile.filepath) {
+        return NextResponse.json(
+          { success: false, message: 'No file uploaded or invalid file key.' },
+          { status: 400 }
+        );
+      }
+
+      const allowedTypes = ['application/pdf'];
+      if (!allowedTypes.includes(uploadedFile.mimetype)) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid file type.' },
+          { status: 400 }
+        );
+      }
+
+      const tempPath = uploadedFile.filepath;
+
+      await prisma.referral.update({
+        where: { id: parsedId },
+        data: {
+          status: 'Completed',
+          test_report_filename: uploadedFile.originalFilename,
+          filePath: tempPath,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        message: 'Referral updated with test report successfully.',
+      });
     }
 
-    const tempPath = uploadedFile.filepath;
-    const fileBuffer = await fs.promises.readFile(tempPath);
-
-    // Encrypt file data
-    const { encryptedData, iv } = encryptData(fileBuffer);
-
-    // Update the referral in the database
-
-    await prisma.referral.update({
-      where: { id: parsedId },
-      data: {
-        status: 'Completed',
-        test_report_filename: uploadedFile.originalFilename,
-        filePath: tempPath,
-      },
-    });
-
-    // Optionally, delete the temporary file
-    await fs.promises.unlink(tempPath);
-
-    return NextResponse.json({
-      success: true,
-      message:
-        'File uploaded, encrypted, and stored in the database successfully.',
-    });
-  } catch (error) {
-    console.error('Error processing file upload:', error);
     return NextResponse.json(
-      { success: false, message: 'Error processing file upload.' },
+      { success: false, message: 'Invalid role provided' },
+      { status: 400 }
+    );
+  } catch (error) {
+    console.error('Error updating referral:', error);
+    return NextResponse.json(
+      { success: false, message: 'Error updating referral data' },
       { status: 500 }
     );
   }

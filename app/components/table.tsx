@@ -4,8 +4,9 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 
 interface Column<T> {
-  key: string; // Allow nested keys
+  key: string;
   label: string;
+  cell?: (value: any, row: T) => React.ReactNode;
 }
 
 interface TableProps<T> {
@@ -14,7 +15,6 @@ interface TableProps<T> {
   handleViewClick: (id: string) => void;
 }
 
-// Utility function to resolve nested values
 const getNestedValue = (obj: any, path: string): any => {
   return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 };
@@ -63,21 +63,16 @@ const Table = <T,>({ columns, data = [], handleViewClick }: TableProps<T>) => {
                       key={column.key}
                       className="py-2 px-4 border-b text-center"
                     >
-                      {getNestedValue(row, column.key) || '-'}
+                      {column.cell
+                        ? column.cell(getNestedValue(row, column.key), row)
+                        : getNestedValue(row, column.key) || '-'}
                     </td>
                   ))}
                   <td className="py-2 px-4 border-b text-center">
                     <Button
                       variant="default"
                       size="sm"
-                      onClick={() => {
-                        console.log('Button clicked for row:', row); // Log the entire row
-                        console.log(
-                          'Button clicked for referral ID:',
-                          (row as any).id
-                        ); // Log the referral ID
-                        handleViewClick((row as any).id);
-                      }}
+                      onClick={() => handleViewClick((row as any).id)}
                     >
                       View
                     </Button>

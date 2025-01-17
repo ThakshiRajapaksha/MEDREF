@@ -1,18 +1,15 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { Readable } from 'stream';
-import formidable from 'formidable';
-import fs from 'fs';
 
-// GET handler to fetch patient details by ID
 export async function GET(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  try {
-    const { id } = await params; // Extract the dynamic route parameter
+  // No need to await params since it's already available
+  const { id } = await params;
 
-    const patientId = parseInt(id, 10); // Parse the ID to a number
+  try {
+    const patientId = parseInt(id, 10);
     if (isNaN(patientId)) {
       return NextResponse.json(
         { success: false, message: 'Invalid patient ID' },
@@ -22,10 +19,6 @@ export async function GET(
 
     const patient = await prisma.patient.findUnique({
       where: { id: patientId },
-      include: {
-        referrals: true,
-        createdBy: true,
-      },
     });
 
     if (!patient) {
@@ -49,100 +42,103 @@ export async function GET(
   }
 }
 
-// Configure formidable
-const form = formidable({
-  multiples: false,
-  uploadDir: './uploads/temp', // Directory to store uploaded files
-  keepExtensions: true, // Preserve file extensions
-});
-
-if (!fs.existsSync('./uploads/temp')) {
-  fs.mkdirSync('./uploads/temp', { recursive: true });
-}
-
 export async function PUT(
-  request: Request,
-  context: { params: { id: string } }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;
-
-  if (!id) {
-    return NextResponse.json(
-      { success: false, message: 'ID is required' },
-      { status: 400 }
-    );
-  }
-
-  const parsedId = parseInt(id);
-  if (isNaN(parsedId)) {
-    return NextResponse.json(
-      { success: false, message: 'Invalid referral ID' },
-      { status: 400 }
-    );
-  }
+  const { id } = await params;
+  const body = await req.json();
 
   try {
-    const arrayBuffer = await request.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const reqStream = Readable.from(buffer);
+    const patientId = parseInt(id, 10);
+    if (isNaN(patientId)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid patient ID' },
+        { status: 400 }
+      );
+    }
 
-    const headers = {
-      'content-length': buffer.length,
-      ...Object.fromEntries(request.headers.entries()),
+    const { test_type, lab, updatedById, doctorId } = body;
+
+    const userId = parseInt(updatedById, 10);
+    if (isNaN(userId)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid updatedById' },
+        { status: 400 }
+      );
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: 'User with provided updatedById not found' },
+        { status: 400 }
+      );
+    }
+
+    // Update patient record
+    const updateData: any = {
+      first_name: body.first_name,
+      last_name: body.last_name,
+      age: body.age,
+      gender: body.gender,
+      contact: body.contact,
+      medicalHistory: body.medicalHistory,
+      updatedBy: { connect: { id: userId } },
     };
-    (reqStream as any).headers = headers;
 
-    // Parse the form data
-    const { files } = await new Promise<{ files: any }>((resolve, reject) => {
-      form.parse(reqStream as any, (err, fields, files) => {
-        if (err) reject(err);
-        else resolve({ files });
+    if (doctorId) {
+      const testType = await prisma.testType.findFirst({
+        where: { name: test_type },
       });
-    });
+      const labEntity = await prisma.lab.findFirst({
+        where: { name: lab },
+      });
 
-    const uploadedFile = files?.test_report ? files.test_report[0] : null;
-    if (!uploadedFile || !uploadedFile.filepath) {
-      return NextResponse.json(
-        { success: false, message: 'No file uploaded or invalid file key.' },
-        { status: 400 }
-      );
-    }
+      if (!testType || !labEntity) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid test type or lab' },
+          { status: 400 }
+        );
+      }
 
-    const allowedTypes = ['application/pdf'];
-    if (!allowedTypes.includes(uploadedFile.mimetype)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: 'Invalid file type. Only PDF files are allowed.',
+      const doctorid = parseInt(doctorId, 10);
+      if (isNaN(doctorid)) {
+        return NextResponse.json(
+          { success: false, message: 'Invalid doctor ID' },
+          { status: 400 }
+        );
+      }
+
+      updateData.referrals = {
+        create: {
+          test: { connect: { id: testType.id } },
+          lab: { connect: { id: labEntity.id } },
+          doctor: { connect: { id: doctorid } },
         },
-        { status: 400 }
-      );
+      };
     }
 
-    const tempPath = uploadedFile.filepath; // Path to the uploaded file
-    const fileName = uploadedFile.originalFilename; // Original file name
-
-    console.log('File saved at path:', tempPath);
-    console.log('File name:', fileName);
-
-    // Save the file path and name to the database
-    await prisma.referral.update({
-      where: { id: parsedId },
-      data: {
-        status: 'Completed', // Update status or any other fields as needed
-        filePath: tempPath, // Save the file path
-        test_report_filename: fileName, // Save the file name
-      },
+    const updatedPatient = await prisma.patient.update({
+      where: { id: patientId },
+      data: updateData,
     });
 
-    return NextResponse.json({
-      success: true,
-      message: 'File path and name saved to the database successfully.',
-    });
-  } catch (error) {
-    console.error('Error processing file upload:', error);
     return NextResponse.json(
-      { success: false, message: 'Error processing file upload.' },
+      { success: true, patient: updatedPatient },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error updating patient:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to update patient',
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     );
   }

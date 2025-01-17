@@ -45,3 +45,6 @@ prisma/migrations
 prisma/.client
 
 uploads/
+
+.env.docker
+docker-compose.yaml
