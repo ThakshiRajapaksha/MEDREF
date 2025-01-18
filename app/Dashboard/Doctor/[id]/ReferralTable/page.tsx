@@ -1,7 +1,16 @@
 'use client';
+
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import Table from '../../../../components/table';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '../../../../components/ui/table';
+import { Button } from '@/app/components/ui/button';
 
 interface Referral {
   id: string;
@@ -11,7 +20,9 @@ interface Referral {
   illness?: string | null;
   allergies?: string | null;
   testType: string;
-  lab_name: string;
+  lab: string;
+  test_report_filename?: string;
+  filepath?: string;
 }
 
 const ReferralTable = () => {
@@ -37,9 +48,10 @@ const ReferralTable = () => {
               status: referral.status,
               illness: referral.illness,
               allergies: referral.allergies,
-              // Ensure you're accessing the correct nested properties for testType and lab
-              testType: referral.test_type || 'Unknown Test Type', // Access test name
-              lab: referral.lab_name || 'Unknown Lab', // Access lab name
+              testType: referral.test_type || 'Unknown Test Type',
+              lab: referral.lab_name || 'Unknown Lab',
+              test_report_filename: referral.test_report_filename,
+              filepath: referral.filePath,
             }));
 
             setReferrals(formattedReferrals);
@@ -56,27 +68,24 @@ const ReferralTable = () => {
     };
 
     fetchReferrals();
-  }, []);
+  }, [doctorId]);
 
   const handleViewClick = async (referralId: string) => {
     try {
       const response = await fetch(`/api/referrals/${referralId}`);
       const data = await response.json();
 
-      console.log('Referral data:', data); // Log the full response
-
       if (!data.success || !data.referral) {
         throw new Error('Failed to fetch referral details.');
       }
 
-      const patientId = data.referral.patient?.patientId; // Use patient ID from the patient object
+      const patientId = data.referral.patient?.patientId;
 
       if (!patientId) {
         alert('Cannot navigate. Patient ID is missing.');
         return;
       }
 
-      // Use the patientId from the referral data
       const path = `/Dashboard/Doctor/${doctorId}/Patient/${patientId}/Referrals/${referralId}`;
       router.push(path);
     } catch (error) {
@@ -88,25 +97,64 @@ const ReferralTable = () => {
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  const columns = [
-    { key: 'id', label: 'Referral ID' },
-    { key: 'patientName', label: 'Patient Name' },
-    { key: 'status', label: 'Status' },
-    { key: 'illness', label: 'Illness' },
-    { key: 'allergies', label: 'Allergies' },
-    { key: 'testType', label: 'Test Type' }, // Add Test Type column
-    { key: 'lab', label: 'Lab' }, // Add Lab column
-  ];
-
   return (
     <div>
-      <h1>Referrals</h1>
-      {referrals.length === 0 && <div>No referrals found.</div>}
-      <Table
-        columns={columns}
-        data={referrals}
-        handleViewClick={handleViewClick}
-      />
+      <h1 className="text-xl font-bold mb-4">Referrals</h1>
+      {referrals.length === 0 ? (
+        <div>No referrals found.</div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Referral ID</TableHead>
+              <TableHead>Patient Name</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Illness</TableHead>
+              <TableHead>Allergies</TableHead>
+              <TableHead>Test Type</TableHead>
+              <TableHead>Lab</TableHead>
+              <TableHead>Test Report</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {referrals.map((referral) => (
+              <TableRow key={referral.id}>
+                <TableCell>{referral.id}</TableCell>
+                <TableCell>{referral.patientName}</TableCell>
+                <TableCell>{referral.status}</TableCell>
+                <TableCell>{referral.illness || 'N/A'}</TableCell>
+                <TableCell>{referral.allergies || 'N/A'}</TableCell>
+                <TableCell>{referral.testType}</TableCell>
+                <TableCell>{referral.lab}</TableCell>
+                <TableCell>
+                  {referral.filepath ? (
+                    <a
+                      href={`http://localhost:3000/api/referrals/${referral.id}/reports`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      View PDF
+                    </a>
+                  ) : (
+                    <span>No PDF</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleViewClick(referral.id)}
+                  >
+                    View
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
     </div>
   );
 };

@@ -16,6 +16,8 @@ interface ReferralResponse {
   status: string;
   illness?: string | null;
   allergies?: string | null;
+  test_report_filename?: string | null;
+  filePath?: string | null;
 }
 
 export async function GET(request: Request) {
@@ -65,7 +67,7 @@ export async function GET(request: Request) {
     });
 
     const formattedReferrals: ReferralResponse[] = referrals.map(
-      (referral: any) => ({
+      (referral) => ({
         id: referral.id,
         patient: {
           first_name: referral.patient.first_name,
@@ -80,6 +82,8 @@ export async function GET(request: Request) {
         status: referral.status,
         illness: referral.illness || null,
         allergies: referral.allergies || null,
+        test_report_filename: referral.test_report_filename || null,
+        filePath: referral.filePath || null,
       })
     );
 
