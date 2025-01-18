@@ -1,69 +1,36 @@
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter from Next.js
+'use client';
 
-interface Column {
+import React, { useState } from 'react';
+import { Button } from './ui/button';
+
+interface Column<T> {
   key: string;
   label: string;
+  cell?: (value: any, row: T) => React.ReactNode;
 }
 
-interface Referral {
-  id: number;
-  patient: {
-    first_name: string;
-    last_name: string;
-  };
-  test_type: string;
-  lab_name: string;
+interface TableProps<T> {
+  columns: Column<T>[];
+  data: T[];
+  handleViewClick: (id: string) => void;
 }
 
-interface TableProps {
-  columns: Column[];
-  data: Referral[];
-  role: 'Admin' | 'Doctor' | 'Lab-technician';
-}
+const getNestedValue = (obj: any, path: string): any => {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+};
 
-const Table = ({ columns, data = [], role }: TableProps) => {
+const Table = <T,>({ columns, data = [], handleViewClick }: TableProps<T>) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const router = useRouter(); // Use Next.js router
 
-  const filteredData = data.filter((row) =>
+  const filteredData = data.filter((item) =>
     columns.some((column) => {
-      const value = (row as unknown as Record<string, unknown>)[column.key];
-      if (column.key === 'patient' && typeof value === 'object' && value !== null) {
-        const patient = value as Referral['patient'];
-        const fullName = `${patient.first_name} ${patient.last_name}`.toLowerCase();
-        return fullName.includes(searchTerm.toLowerCase());
-      }
-      return typeof value === 'string' && value.toLowerCase().includes(searchTerm.toLowerCase());
+      const value = getNestedValue(item, column.key);
+      return (
+        typeof value === 'string' &&
+        value.toLowerCase().includes(searchTerm.toLowerCase())
+      );
     })
   );
-
-  const handleViewClick = (id: number) => {
-    let path = '';
-    switch (role) {
-      case 'Admin':
-        path = `/Dashboard/Admin/Patient/${id}`;
-        break;
-      case 'Doctor':
-        path = `/Dashboard/Doctor/Patient/${id}`;
-        break;
-      case 'Lab-technician':
-        path = `/Dashboard/Lab-technician/Referral/${id}`;
-        break;
-      default:
-        path = '/';
-    }
-    router.push(path); // Use Next.js navigation
-  };
-
-  const getCellValue = (
-    value: string | number | { first_name: string; last_name: string }
-  ): React.ReactNode => {
-    if (typeof value === 'object' && value !== null && 'first_name' in value && 'last_name' in value) {
-      return `${value.first_name} ${value.last_name}`;
-    }
-    return value ?? '-';
-  };
 
   return (
     <div className="p-4">
@@ -89,27 +56,36 @@ const Table = ({ columns, data = [], role }: TableProps) => {
           </thead>
           <tbody>
             {filteredData.length > 0 ? (
-              filteredData.map((row) => (
-                <tr key={row.id}>
+              filteredData.map((row, index) => (
+                <tr key={index}>
                   {columns.map((column) => (
-                    <td key={column.key} className="py-2 px-4 border-b text-center">
-                      {getCellValue(row[column.key as keyof Referral])}
+                    <td
+                      key={column.key}
+                      className="py-2 px-4 border-b text-center"
+                    >
+                      {column.cell
+                        ? column.cell(getNestedValue(row, column.key), row)
+                        : getNestedValue(row, column.key) || '-'}
                     </td>
                   ))}
                   <td className="py-2 px-4 border-b text-center">
-                    <button
-                      onClick={() => handleViewClick(row.id)}
-                      className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-1 rounded"
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={() => handleViewClick((row as any).id)}
                     >
                       View
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length + 1} className="text-center py-4 text-gray-500">
-                  No data found
+                <td
+                  colSpan={columns.length + 1}
+                  className="py-2 px-4 border-b text-center"
+                >
+                  No data available
                 </td>
               </tr>
             )}

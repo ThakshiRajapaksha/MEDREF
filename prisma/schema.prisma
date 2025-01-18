@@ -1,78 +1,82 @@
-  // This is your Prisma schema file,
-  // learn more about it in the docs: https://pris.ly/d/prisma-schema
+generator client {
+  provider = "prisma-client-js"
+}
 
-  // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-  // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
 
-  generator client {
-    provider = "prisma-client-js"
-  }
+model Lab {
+  id       Int        @id @default(autoincrement())
+  name     String     @unique
+  referrals Referral[]
+  testtype TestType[]
+}
 
-  datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
-  } 
+model Patient {
+  id            Int      @id @default(autoincrement())
+  first_name    String
+  last_name     String
+  age           Int
+  gender        String
+  contact       String
+  medicalHistory String?
+  createdBy     User     @relation(fields: [createdById], references: [id])
+  referrals     Referral[] // Update this to be the only reference for illnesses and allergies
+  createdById   Int
+  createdAt     DateTime @default(now())
+  updatedById   Int?
+  updatedBy     User? @relation("UserUpdates", fields: [updatedById], references: [id])
+}
 
-  //model for user table schema
-  model User{
-    id         Int      @id @default(autoincrement())
-    first_name String?  @db.VarChar(255)
-    last_name  String   @db.VarChar(255)
-    mobile     String   @db.VarChar(255)
-    email      String   @unique
-    password  String
-    role      Role     @relation(fields: [roleId], references: [id])
-    patients  Patient[]
-    roleId    Int
-    createdAt  DateTime @default(now())
-    updatedAt  DateTime @updatedAt()
-  }
+model Referral {
+  id                   Int      @id @default(autoincrement())
+  patientId            Int
+  testId               Int
+  labId                Int
+  doctorId             Int
+  status               String   @default("Pending")
+  allergies            String?
+  illness              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @default(now())
+  iv                   Bytes?
+  filePath             String?
+  test_report          Bytes?
+  test_report_filename String?
+  doctor               User @relation("DoctorReferrals", fields: [doctorId], references: [id])
+  lab                  Lab      @relation(fields: [labId], references: [id])
+  patient              Patient  @relation(fields: [patientId], references: [id])
+  test                 TestType @relation(fields: [testId], references: [id])
+}
 
-  // Role model (Doctor, Technician, Admin)
-  model Role {
-    id    Int    @id @default(autoincrement())
-    name  String @unique
-    users User[]
-  }
+model Role {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  users User[]
+}
 
-  model Patient {
-    id            Int      @id @default(autoincrement())
-    first_name    String
-    last_name     String
-    age           Int
-    gender        String
-    contact       String
-    medicalHistory String?
-    illnesses     String?  
-    allergies     String?
-    createdBy     User     @relation(fields: [createdById], references: [id])
-    referrals     Referral[]
-    createdById   Int
-    createdAt     DateTime @default(now())
-  }
+model TestType {
+  id         Int       @id @default(autoincrement())
+  name       String    
+  labId      Int      
+  lab        Lab      @relation(fields: [labId], references: [id])
+  referrals  Referral[] 
+}
 
-  model Referral {
-    id         Int       @id @default(autoincrement())
-    patientId  Int
-    testId     Int
-    labId      Int
-    patient    Patient   @relation(fields: [patientId], references: [id])
-    test       TestType  @relation(fields: [testId], references: [id])
-    lab        Lab       @relation(fields: [labId], references: [id])
-  }
-
-  model TestType {
-    id         Int       @id @default(autoincrement())
-    name       String    
-    labId      Int      
-    lab        Lab      @relation(fields: [labId], references: [id])
-    referrals  Referral[] // Back-relation to Referral
-  }
-
-
-  model Lab {
-    id         Int        @id @default(autoincrement())
-    name       String 
-    testTypes  TestType[] 
-    referrals  Referral[] // Back-relation to Referral
-  }
+model User {
+  id         Int      @id @default(autoincrement())
+  first_name String?  @db.VarChar(255)
+  last_name  String   @db.VarChar(255)
+  mobile     String   @db.VarChar(255)
+  email      String   @unique
+  password   String
+  role       Role     @relation(fields: [roleId], references: [id])
+  patients   Patient[]
+  roleId     Int
+  referrals  Referral[] @relation("DoctorReferrals")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt()
+  updatedPatients Patient[] @relation("UserUpdates")
+}

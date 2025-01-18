@@ -11,7 +11,7 @@ interface Patient {
 interface Referral {
   id: number;
   patient: Patient;
-  test_type: string; 
+  test_type: string;
   lab_name: string;
 }
 
@@ -27,12 +27,14 @@ const ReferralTable = () => {
         console.log('Fetched referral data:', data);
 
         if (data.success && Array.isArray(data.referrals)) {
-          const referralData: Referral[] = data.referrals.map((referral: any) => ({
-            id: referral.id,
-            patient: referral.patient,
-            test_type: referral.test_type|| 'No test type', // Handle missing test type
-            lab_name: referral.lab_name || 'No lab name', // Handle missing lab name
-          }));
+          const referralData: Referral[] = data.referrals.map(
+            (referral: any) => ({
+              id: referral.id,
+              patient: referral.patient,
+              test_type: referral.test_type || 'No test type', // Handle missing test type
+              lab_name: referral.lab_name || 'No lab name', // Handle missing lab name
+            })
+          );
           setReferrals(referralData);
         } else {
           setError('Expected array of referrals but received something else.');
@@ -61,9 +63,17 @@ const ReferralTable = () => {
     { key: 'lab_name', label: 'Lab Name' },
   ];
 
+  const handleViewClick = (id: string) => {
+    console.log('View clicked for referral ID:', id);
+  };
+
   return (
     <div>
-      <Table columns={columns} data={referrals} role={'Lab-technician'} />
+      <Table
+        columns={columns}
+        data={referrals}
+        handleViewClick={handleViewClick}
+      />
     </div>
   );
 };

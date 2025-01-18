@@ -12,8 +12,6 @@ export async function POST(req: Request) {
       contact,
       medicalHistory,
       adminId,
-      illnesses,
-      allergies,
     } = await req.json();
 
     if (!first_name || !last_name || !age || !gender || !contact || !adminId) {
@@ -32,8 +30,6 @@ export async function POST(req: Request) {
         contact,
         medicalHistory: medicalHistory || '',
         createdById: adminId,
-        illnesses: illnesses || null,  // Default to null if not provided
-        allergies: allergies || null,
       },
     });
 
@@ -63,13 +59,14 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        referrals: true,
+      },
     });
 
     return NextResponse.json({ success: true, patients }, { status: 200 });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Error fetching patients:', error);
-
     return NextResponse.json(
       {
         success: false,

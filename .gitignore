@@ -43,3 +43,8 @@ prisma/migrations
 
 # Ignore Prisma Client binary
 prisma/.client
+
+uploads/
+
+.env.docker
+docker-compose.yaml
