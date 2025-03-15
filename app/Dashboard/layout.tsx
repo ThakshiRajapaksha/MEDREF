@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Sidebar } from '../components/ui/sidebar/sidebar';
 import { SidebarItem } from '../components/ui/sidebar/SidebarItem';
 import {
@@ -13,6 +13,13 @@ import {
 import { useParams, usePathname } from 'next/navigation';
 import { Input } from '../components/ui/input';
 import 'react-calendar/dist/Calendar.css';
+import {
+  KnockProvider,
+  KnockFeedProvider,
+  NotificationIconButton,
+  NotificationFeedPopover,
+} from '@knocklabs/react';
+import '@knocklabs/react/dist/index.css';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { id } = useParams();
@@ -42,13 +49,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       isExpandable?: boolean;
     }[]
   >([]);
+  const [isNotifVisible, setIsNotifVisible] = useState(false);
+  const notifButtonRef = useRef(null);
 
   const toggleLabs = () => setLabsExpanded((prev) => !prev);
 
+  const userId = Array.isArray(id) ? id[0] : id;
+
   // Fetch user data and role
   useEffect(() => {
-    if (id) {
-      fetch(`/api/users/${id}`)
+    if (userId) {
+      fetch(`/api/users/${userId}`)
         .then((response) => response.json())
         .then((data) => {
           if (data.success && data.user) {
@@ -68,7 +79,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           setLoading(false);
         });
     }
-  }, [id]);
+  }, [userId]);
 
   // Fetch labs if the role is "Lab-technician"
   useEffect(() => {
@@ -97,7 +108,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (role === 'Doctor' || role === 'Admin' || role === 'Lab-technician') {
       items.push({
         label: 'Dashboard',
-        path: `/Dashboard/${role}/${id}`,
+        path: `/Dashboard/${role}/${userId}`,
         icon: <FaStethoscope size={24} color="black" />,
       });
     }
@@ -106,12 +117,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       items.push(
         {
           label: 'Manage Patients',
-          path: `/Dashboard/${role}/${id}/Patient`,
+          path: `/Dashboard/${role}/${userId}/Patient`,
           icon: <FaUser size={24} color="black" />,
         },
         {
           label: 'Patients List',
-          path: `/Dashboard/${role}/${id}/PatientTable`,
+          path: `/Dashboard/${role}/${userId}/PatientTable`,
           icon: <FaUser size={24} color="black" />,
         }
       );
@@ -131,19 +142,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       items.push(
         {
           label: 'Patients',
-          path: `/Dashboard/${role}/${id}/PatientTable`,
+          path: `/Dashboard/${role}/${userId}/PatientTable`,
           icon: <FaUser size={24} color="black" />,
         },
         {
           label: 'Referrals',
-          path: `/Dashboard/${role}/${id}/ReferralTable`,
+          path: `/Dashboard/${role}/${userId}/ReferralTable`,
           icon: <FaHeartbeat size={24} color="black" />,
         }
       );
     }
 
     setSidebarItems(items);
-  }, [role, id]);
+  }, [role, userId]);
 
   // Update pageTitle based on active tab
   useEffect(() => {
@@ -166,64 +177,82 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-screen">
-      <Sidebar users={userData}>
-        {sidebarItems.map((item) => (
-          <div key={item.label}>
-            {item.isExpandable ? (
-              <div
-                onClick={item.onClick}
-                className="flex items-center justify-between text-sm py-2 px-4 rounded-md hover:bg-teal-100 font-heading cursor-pointer"
-              >
-                <div className="flex items-center">
-                  <span className="mr-2">{item.icon}</span>
-                  {item.label}
-                </div>
-                {labsExpanded ? (
-                  <FaChevronDown size={16} color="black" />
+    <KnockProvider
+      apiKey={process.env.NEXT_PUBLIC_KNOCK_API_KEY!}
+      userId={userId}
+    >
+      <KnockFeedProvider
+        feedId={process.env.NEXT_PUBLIC_KNOCK_FEED_CHANNEL_ID!}
+      >
+        <div className="flex h-screen">
+          <Sidebar users={userData}>
+            {sidebarItems.map((item) => (
+              <div key={item.label}>
+                {item.isExpandable ? (
+                  <div
+                    onClick={item.onClick}
+                    className="flex items-center justify-between text-sm py-2 px-4 rounded-md hover:bg-teal-100 font-heading cursor-pointer"
+                  >
+                    <div className="flex items-center">
+                      <span className="mr-2">{item.icon}</span>
+                      {item.label}
+                    </div>
+                    {labsExpanded ? (
+                      <FaChevronDown size={16} color="black" />
+                    ) : (
+                      <FaChevronRight size={16} color="black" />
+                    )}
+                  </div>
                 ) : (
-                  <FaChevronRight size={16} color="black" />
+                  <SidebarItem
+                    href={item.path}
+                    label={item.label}
+                    icon={item.icon}
+                  />
+                )}
+
+                {item.label === 'Labs' && labsExpanded && (
+                  <div className="pl-6">
+                    {labs.map((lab) => (
+                      <SidebarItem
+                        key={lab.id}
+                        href={`/Dashboard/Lab-technician/${userId}/Labs/${lab.id}`}
+                        label={lab.name}
+                        icon={<FaFlask size={20} color="black" />}
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
-            ) : (
-              <SidebarItem
-                href={item.path}
-                label={item.label}
-                icon={item.icon}
-              />
-            )}
+            ))}
+          </Sidebar>
 
-            {item.label === 'Labs' && labsExpanded && (
-              <div className="pl-6">
-                {labs.map((lab) => (
-                  <SidebarItem
-                    key={lab.id}
-                    href={`/Dashboard/Lab-technician/${id}/Labs/${lab.id}`}
-                    label={lab.name}
-                    icon={<FaFlask size={20} color="black" />}
-                  />
-                ))}
+          <div className="flex flex-1 flex-col relative">
+            <header className="sticky top-0 z-10 bg-white shadow-md">
+              <div className="flex items-center justify-between px-6 py-4">
+                <h1 className="text-sm font-bold">{pageTitle}</h1>
+                <Input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-sm"
+                />
+                <NotificationIconButton
+                  ref={notifButtonRef}
+                  onClick={() => setIsNotifVisible(!isNotifVisible)}
+                />
+                <NotificationFeedPopover
+                  buttonRef={notifButtonRef}
+                  isVisible={isNotifVisible}
+                  onClose={() => setIsNotifVisible(false)}
+                />
               </div>
-            )}
+            </header>
+            <main className="flex-1 p-4 overflow-y-auto">{children}</main>
           </div>
-        ))}
-      </Sidebar>
-
-      <div className="flex flex-1 flex-col relative">
-        <header className="sticky top-0 z-10 bg-white shadow-md">
-          <div className="flex items-center justify-between px-6 py-4">
-            <h1 className="text-sm font-bold">{pageTitle}</h1>
-            <Input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-            />
-          </div>
-        </header>
-        <main className="flex-1 p-4 overflow-y-auto">{children}</main>
-      </div>
-    </div>
+        </div>
+      </KnockFeedProvider>
+    </KnockProvider>
   );
 }

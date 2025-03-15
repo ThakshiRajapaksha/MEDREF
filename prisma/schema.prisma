@@ -36,6 +36,7 @@ model Referral {
   testId               Int
   labId                Int
   doctorId             Int
+  labtechnicianId      Int?
   status               String   @default("Pending")
   allergies            String?
   illness              String?
@@ -49,6 +50,7 @@ model Referral {
   lab                  Lab      @relation(fields: [labId], references: [id])
   patient              Patient  @relation(fields: [patientId], references: [id])
   test                 TestType @relation(fields: [testId], references: [id])
+  labtechnician User? @relation("LabtechnicianReferrals", fields: [labtechnicianId], references: [id])
 }
 
 model Role {
@@ -79,4 +81,6 @@ model User {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt()
   updatedPatients Patient[] @relation("UserUpdates")
+  labtechnicianReferrals  Referral[] @relation("LabtechnicianReferrals")
+
 }
