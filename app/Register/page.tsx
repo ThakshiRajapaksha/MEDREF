@@ -10,9 +10,8 @@ import {
   UserIcon,
   AtSymbolIcon,
 } from '@heroicons/react/24/solid';
-import Button from '../components/button';
-import React from 'react';
-import { CalendarDateRangePicker } from '../components/ui/CalendarDateRangePicker';
+import { Button } from '../components/ui/button';
+import backgroundImage from '@/app/assets/background.jpg';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -80,8 +79,10 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100 overflow-auto">
-      {' '}
+    <div
+      className="relative h-screen bg-cover bg-center flex flex-col items-center justify-center"
+      style={{ backgroundImage: `url(${backgroundImage.src})` }}
+    >
       {/* Added overflow-auto */}
       <div className="w-full max-w-md p-4 bg-white rounded shadow-lg mt-4">
         {/* Title for the form */}
@@ -89,7 +90,7 @@ export default function RegisterPage() {
           User Registration
         </h1>
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <label
                 className="mb-3 mt-5 block text-xs font-medium text-gray-900"
@@ -197,7 +198,7 @@ export default function RegisterPage() {
                 <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
               </div>
             </div>
-            <div className="mt-4">
+            <div>
               <label
                 className="mb-3 mt-5 block text-xs font-medium text-gray-900"
                 htmlFor="password"
@@ -219,7 +220,7 @@ export default function RegisterPage() {
                 <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
               </div>
             </div>
-            <div className="mt-4">
+            <div>
               <label
                 className="mb-3 mt-5 block text-xs font-medium text-gray-900"
                 htmlFor="confirm-password"
@@ -253,124 +254,17 @@ export default function RegisterPage() {
                 </>
               )}
             </div>
-            <div className="mt-4 flex justify-center">
-              <Button label="Register" color="blue" type="submit" />
+            <div className="mt-4 mb-4 flex item-center">
+              <button
+                type="submit"
+                className="w-full sm:w-64 px-4 py-2 text-white bg-teal-500 rounded-md hover:bg-teal-600 disabled:bg-gray-400"
+              >
+                Register User
+              </button>
             </div>
           </div>
         </form>
       </div>
-    </div>
-  );
-}
-export default function DoctorDashboard() {
-  const { id } = useParams();
-  const [userData, setUserData] = useState<{
-    name: string;
-    role: string;
-  } | null>(null);
-
-  // const [patients, setPatients] = useState(0);
-  // const [referrals, setReferrals] = useState(0);
-  // const [tests, setTests] = useState(0);
-  // const [urgentCases, setUrgentCases] = useState(0);
-  const SecureEmbed = () => {
-    // Replace with the actual secure embed URL for your Power BI report
-    const powerBIEmbedUrl =
-      'https://app.powerbi.com/view?r=YOUR_PUBLIC_EMBED_URL';
-    return <iframe src={powerBIEmbedUrl} width="100%" height="600px" />;
-  };
-
-  useEffect(() => {
-    fetch(`/api/users/${id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success && data.user) {
-          setUserData({
-            name: `${data.user.first_name} ${data.user.last_name}`,
-            role: data.user.role.name,
-          });
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching user data:', error);
-      });
-
-    // fetch('/api/dashboard-data')
-    //   .then((response) => response.json())
-    //   .then((data) => {
-    //     setPatients(data.patients || 0);
-    //     setReferrals(data.referrals || 0);
-    //     setTests(data.tests || 0);
-    //     setUrgentCases(data.urgentCases || 0);
-    //   })
-    //   .catch((error) => {
-    //     console.error('Error fetching dashboard data:', error);
-    //   });
-  }, [id]);
-
-  if (!userData) {
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <div className="relative flex-1 p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold">Welcome, {userData.name}</h1>
-        <CalendarDateRangePicker className="z-10" />
-      </div>
-
-      {/* <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Patients</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{patients}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Total patients registered
-                  </p>
-                </CardContent>
-              </Card>
-      
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Referrals</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{referrals}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Total referrals made
-                  </p>
-                </CardContent>
-              </Card>
-      
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Tests</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{tests}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Total tests conducted
-                  </p>
-                </CardContent>
-              </Card>
-      
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm font-medium">Urgent Cases</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{urgentCases}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Referrals marked as urgent
-                  </p>
-                </CardContent>
-              </Card>
-            </div> */}
-      <iframe>
-        <SecureEmbed />
-      </iframe>
     </div>
   );
 }

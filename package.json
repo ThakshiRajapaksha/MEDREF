@@ -70,7 +70,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@prisma/client": "^6.2.1",
+    "@prisma/client": "^6.5.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/multer": "^1.4.12",
     "@types/next-auth": "^3.13.0",
@@ -91,7 +91,7 @@
     "lint-staged": "^15.2.10",
     "postcss": "^8",
     "prettier": "^3.4.2",
-    "prisma": "^6.2.1",
+    "prisma": "^6.5.0",
     "shadcn-ui": "^0.9.4",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",

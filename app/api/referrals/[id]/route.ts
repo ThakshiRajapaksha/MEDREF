@@ -79,7 +79,6 @@ export async function GET(
         first_name: referral.doctor.first_name,
         last_name: referral.doctor.last_name,
       },
-
       status: referral.status,
       illness: referral.illness || null,
       allergies: referral.allergies || null,
@@ -191,7 +190,7 @@ export async function PUT(
         },
       });
 
-      console.log('rsepons:', response);
+      console.log('response:', response);
 
       return NextResponse.json({
         success: true,

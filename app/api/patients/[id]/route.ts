@@ -58,7 +58,7 @@ export async function PUT(
       );
     }
 
-    const { test_type, lab, updatedById, doctorId } = body;
+    const { test_type, lab, updatedById, doctorId, urgency } = body; // Include urgency from request body
 
     const userId = parseInt(updatedById, 10);
     if (isNaN(userId)) {
@@ -118,6 +118,7 @@ export async function PUT(
           test: { connect: { id: testType.id } },
           lab: { connect: { id: labEntity.id } },
           doctor: { connect: { id: doctorid } },
+          urgency: urgency || 'normal', // Save urgency, default to 'normal' if not provided
         },
       };
     }

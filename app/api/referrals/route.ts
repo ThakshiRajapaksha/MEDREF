@@ -18,6 +18,7 @@ interface ReferralResponse {
   allergies?: string | null;
   test_report_filename?: string | null;
   filePath?: string | null;
+  urgency: string;
 }
 
 export async function GET(request: Request) {
@@ -84,6 +85,7 @@ export async function GET(request: Request) {
         allergies: referral.allergies || null,
         test_report_filename: referral.test_report_filename || null,
         filePath: referral.filePath || null,
+        urgency: referral.urgency,
       })
     );
 

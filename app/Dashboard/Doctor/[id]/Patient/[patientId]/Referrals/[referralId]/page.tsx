@@ -182,152 +182,150 @@ export default function DoctorPatientUpdateForm() {
   return (
     <div className="flex flex-col justify-start min-h-screen bg-gray-100 p-4 md:p-8">
       <Tabs defaultValue="details" onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="flex justify-start">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="medicalHistory">Medical History</TabsTrigger>
           <TabsTrigger value="referralList">Referral List</TabsTrigger>
         </TabsList>
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="flex flex-col items-center space-y-6 mt-4 w-full bg-white p-6 shadow-lg rounded"
+          className="flex flex-col space-y-6 mt-4 w-full bg-white p-6 shadow-lg rounded"
         >
-          <div className="w-full max-w-4xl p-8 shadow-lg rounded-lg">
-            <TabsContent value="details">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="first_name">First Name</Label>
-                  <Controller
-                    name="first_name"
-                    control={control}
-                    render={({ field }) => (
-                      <Input className="w-full p-2" {...field} />
-                    )}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Controller
-                    name="last_name"
-                    control={control}
-                    render={({ field }) => (
-                      <Input className="w-full p-2" {...field} />
-                    )}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="illness">Illness</Label>
+          <TabsContent value="details">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
                 <Controller
-                  name="illness"
+                  name="first_name"
                   control={control}
                   render={({ field }) => (
-                    <Input className="w-full p-2" {...field} />
+                    <Input className="w-full p-2 mt-1" {...field} />
                   )}
                 />
               </div>
-              <div>
-                <Label htmlFor="allergies">Allergies</Label>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
                 <Controller
-                  name="allergies"
+                  name="last_name"
                   control={control}
                   render={({ field }) => (
-                    <Input className="w-full p-2" {...field} />
+                    <Input className="w-full p-2 mt-1" {...field} />
                   )}
                 />
               </div>
-              <div>
-                <Label htmlFor="test_type">Test Type</Label>
-                <Controller
-                  name="test_type"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      value={selectedTestType}
-                      onValueChange={(value) => {
-                        setSelectedTestType(value); // Update the selected test type
-                        field.onChange(value); // Update form value for test type
-                      }}
-                    >
-                      <SelectTrigger className="w-full p-2">
-                        <SelectValue placeholder="Select a test type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {testTypes.map((testType) => (
-                          <SelectItem key={testType.id} value={testType.name}>
-                            {testType.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="lab">Lab</Label>
-                <Controller
-                  name="lab"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      value={selectedLab}
-                      onValueChange={(value) => {
-                        setSelectedLab(value); // Manually update the selected lab if necessary
-                        field.onChange(value); // Update form value for lab
-                      }}
-                      disabled // Disable manual selection of lab
-                    >
-                      <SelectTrigger className="w-full p-2">
-                        <SelectValue placeholder="Select a lab" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {labsForSelectedTest.map((lab) => (
-                          <SelectItem key={lab.id} value={lab.name}>
-                            {lab.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-              </div>
-              <div>
-                <Label htmlFor="referral_status">Referral Status</Label>
-                <Controller
-                  name="referral_status"
-                  control={control}
-                  render={({ field }) => (
-                    <Input className="w-full p-2" {...field} />
-                  )}
-                />
-              </div>
-            </TabsContent>
-            <TabsContent value="medicalHistory">
-              <Label htmlFor="medical_history">Medical History</Label>
+            </div>
+            <div>
+              <Label htmlFor="illness">Illness</Label>
               <Controller
-                name="medical_history"
+                name="illness"
                 control={control}
                 render={({ field }) => (
-                  <Textarea className="w-full p-2" {...field} />
+                  <Input className="w-full p-2 mt-1" {...field} />
                 )}
               />
-            </TabsContent>
-            <TabsContent value="referralList">
-              <Button onClick={handleViewPatients} className="mb-4 p-2">
-                View referrals
-              </Button>
-            </TabsContent>
-            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-            {activeTab === 'details' && (
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-64 p-2 mt-4"
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit'}
-              </Button>
-            )}
-          </div>
+            </div>
+            <div>
+              <Label htmlFor="allergies">Allergies</Label>
+              <Controller
+                name="allergies"
+                control={control}
+                render={({ field }) => (
+                  <Input className="w-full p-2 mt-1" {...field} />
+                )}
+              />
+            </div>
+            <div>
+              <Label htmlFor="test_type">Test Type</Label>
+              <Controller
+                name="test_type"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={selectedTestType}
+                    onValueChange={(value) => {
+                      setSelectedTestType(value); // Update the selected test type
+                      field.onChange(value); // Update form value for test type
+                    }}
+                  >
+                    <SelectTrigger className="w-full p-2 mt-1">
+                      <SelectValue placeholder="Select a test type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {testTypes.map((testType) => (
+                        <SelectItem key={testType.id} value={testType.name}>
+                          {testType.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="lab">Lab</Label>
+              <Controller
+                name="lab"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    value={selectedLab}
+                    onValueChange={(value) => {
+                      setSelectedLab(value); // Manually update the selected lab if necessary
+                      field.onChange(value); // Update form value for lab
+                    }}
+                    disabled // Disable manual selection of lab
+                  >
+                    <SelectTrigger className="w-full p-2 mt-1">
+                      <SelectValue placeholder="Select a lab" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {labsForSelectedTest.map((lab) => (
+                        <SelectItem key={lab.id} value={lab.name}>
+                          {lab.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+            <div>
+              <Label htmlFor="referral_status">Referral Status</Label>
+              <Controller
+                name="referral_status"
+                control={control}
+                render={({ field }) => (
+                  <Input className="w-full p-2 mt-1" {...field} />
+                )}
+              />
+            </div>
+          </TabsContent>
+          <TabsContent value="medicalHistory">
+            <Label htmlFor="medical_history">Medical History</Label>
+            <Controller
+              name="medical_history"
+              control={control}
+              render={({ field }) => (
+                <Textarea className="w-full p-2 mt-1" {...field} />
+              )}
+            />
+          </TabsContent>
+          <TabsContent value="referralList">
+            <Button onClick={handleViewPatients} className="mb-4 p-2">
+              View referrals
+            </Button>
+          </TabsContent>
+          {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+          {activeTab === 'details' && (
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-64 p-2 mt-4"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </Button>
+          )}
         </form>
       </Tabs>
     </div>

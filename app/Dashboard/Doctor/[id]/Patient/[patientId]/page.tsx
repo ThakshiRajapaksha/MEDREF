@@ -103,6 +103,7 @@ export default function DoctorPatientUpdateForm() {
       lab: '',
       referral_status: '',
       medical_history: '',
+      urgency: '',
     },
   });
 
@@ -140,6 +141,7 @@ export default function DoctorPatientUpdateForm() {
           last_name: formData.last_name,
           illness: formData.illness,
           allergies: formData.allergies,
+          urgency: formData.urgency,
           test_type: formData.test_type,
           lab: formData.lab,
           referral_status: 'Pending',
@@ -169,169 +171,210 @@ export default function DoctorPatientUpdateForm() {
 
   return (
     <div className="flex flex-col justify-start min-h-screen bg-gray-100 p-4 md:p-8">
-      <div className="w-full max-w-4xl p-8 shadow-lg rounded-lg">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="flex justify-start">
-            <TabsTrigger value="form">Form</TabsTrigger>
-            <TabsTrigger value="list">List</TabsTrigger>
-          </TabsList>
-          <TabsContent value="form">
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="flex flex-col items-center space-y-6 mt-4 w-full bg-white p-6 shadow-lg rounded"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-                <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name</Label>
-                  <Controller
-                    name="first_name"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="first_name"
-                        type="text"
-                        disabled
-                        className="w-full p-2 mt-1"
-                      />
-                    )}
-                  />
-                </div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="flex justify-start">
+          <TabsTrigger value="form">Form</TabsTrigger>
+          <TabsTrigger value="list">List</TabsTrigger>
+        </TabsList>
+        <TabsContent value="form">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="flex flex-col items-center space-y-6 mt-4 w-full bg-white p-6 shadow-lg rounded"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <Controller
+                  name="first_name"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      id="first_name"
+                      type="text"
+                      disabled
+                      className="w-full p-2 mt-1"
+                    />
+                  )}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name</Label>
-                  <Controller
-                    name="last_name"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="last_name"
-                        type="text"
-                        disabled
-                        className="w-full p-2 mt-1"
-                      />
-                    )}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <Controller
+                  name="last_name"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      id="last_name"
+                      type="text"
+                      disabled
+                      className="w-full p-2 mt-1"
+                    />
+                  )}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="illness">Illness</Label>
-                  <Controller
-                    name="illness"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="illness"
-                        type="text"
-                        className="w-full p-2 mt-1"
-                      />
-                    )}
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="illness">Illness</Label>
+                <Controller
+                  name="illness"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      id="illness"
+                      type="text"
+                      className="w-full p-2 mt-1"
+                    />
+                  )}
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="allergies">Allergies</Label>
+              <div className="space-y-2">
+                <Label htmlFor="allergies">Allergies</Label>
+                <Controller
+                  name="allergies"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      id="allergies"
+                      type="text"
+                      className="w-full p-2 mt-1"
+                    />
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Urgency</Label>
+                <div className="flex gap-6 mt-2 items-center">
                   <Controller
-                    name="allergies"
+                    name="urgency"
                     control={control}
+                    defaultValue="normal"
                     render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="allergies"
-                        type="text"
-                        className="w-full p-2 mt-1"
-                      />
-                    )}
-                  />
-                </div>
+                      <>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value="normal"
+                            checked={field.value === 'normal'}
+                            onChange={() => field.onChange('normal')}
+                          />
+                          <span>Normal</span>
+                        </label>
 
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="test_type">Test Type</Label>
-                  <Select
-                    value={selectedTestType}
-                    onValueChange={handleTestTypeChange}
-                  >
-                    <SelectTrigger className="w-full p-2 mt-1 border border-gray-300 rounded">
-                      <SelectValue>
-                        {selectedTestType
-                          ? testTypes.find(
-                              (type) => type.id.toString() === selectedTestType
-                            )?.name
-                          : 'Select a Test Type'}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="z-50 bg-white shadow-lg border border-gray-300 rounded">
-                      {testTypes.length === 0 ? (
-                        <SelectItem value="no-options">
-                          No test types available
-                        </SelectItem>
-                      ) : (
-                        testTypes.map((type) => (
-                          <SelectItem key={type.id} value={type.id.toString()}>
-                            {type.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value="urgent"
+                            checked={field.value === 'urgent'}
+                            onChange={() => field.onChange('urgent')}
+                          />
+                          <span>Urgent</span>
+                        </label>
 
-                <div className="space-y-2">
-                  <Label htmlFor="lab">Lab</Label>
-                  <Controller
-                    name="lab"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="lab"
-                        type="text"
-                        disabled
-                        className="w-full p-2 mt-1"
-                      />
-                    )}
-                  />
-                </div>
-
-                <div className="space-y-2 col-span-2">
-                  <Label htmlFor="medical_history">Medical History</Label>
-                  <Controller
-                    name="medical_history"
-                    control={control}
-                    render={({ field }) => (
-                      <Textarea
-                        {...field}
-                        id="medical_history"
-                        rows={4}
-                        className="w-full p-2 mt-1"
-                      />
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            value="emergency"
+                            checked={field.value === 'emergency'}
+                            onChange={() => field.onChange('emergency')}
+                          />
+                          <span>Emergency</span>
+                        </label>
+                      </>
                     )}
                   />
                 </div>
               </div>
 
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full sm:w-64 p-2 mt-1"
-              >
-                {isSubmitting ? 'Updating...' : 'Submit Referral'}
-              </Button>
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="test_type">Test Type</Label>
+                <Select
+                  value={selectedTestType}
+                  onValueChange={handleTestTypeChange}
+                >
+                  <SelectTrigger className="w-full p-2 mt-1 border border-gray-300 rounded">
+                    <SelectValue>
+                      {selectedTestType
+                        ? testTypes.find(
+                            (type) => type.id.toString() === selectedTestType
+                          )?.name
+                        : 'Select a Test Type'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-white shadow-lg border border-gray-300 rounded">
+                    {testTypes.length === 0 ? (
+                      <SelectItem value="no-options">
+                        No test types available
+                      </SelectItem>
+                    ) : (
+                      testTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id.toString()}>
+                          {type.name}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
-              {errorMessage && (
-                <p className="text-red-500 mt-2">{errorMessage}</p>
-              )}
-            </form>
-          </TabsContent>
-          <TabsContent value="list">
-            <Button onClick={handleViewPatients} className="mb-4 p-2">
-              View referrals
+              <div className="space-y-2">
+                <Label htmlFor="lab">Lab</Label>
+                <Controller
+                  name="lab"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      id="lab"
+                      type="text"
+                      disabled
+                      className="w-full p-2 mt-1"
+                    />
+                  )}
+                />
+              </div>
+
+              <div className="space-y-2 col-span-2">
+                <Label htmlFor="medical_history">Medical History</Label>
+                <Controller
+                  name="medical_history"
+                  control={control}
+                  render={({ field }) => (
+                    <Textarea
+                      {...field}
+                      id="medical_history"
+                      rows={4}
+                      className="w-full p-2 mt-1"
+                    />
+                  )}
+                />
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full sm:w-64 p-2 mt-1"
+            >
+              {isSubmitting ? 'Updating...' : 'Submit Referral'}
             </Button>
-          </TabsContent>
-        </Tabs>
-      </div>
+
+            {errorMessage && (
+              <p className="text-red-500 mt-2">{errorMessage}</p>
+            )}
+          </form>
+        </TabsContent>
+        <TabsContent value="list">
+          <Button onClick={handleViewPatients} className="mb-4 p-2">
+            View referrals
+          </Button>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

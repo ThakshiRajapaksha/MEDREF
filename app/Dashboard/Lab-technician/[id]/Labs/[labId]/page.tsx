@@ -34,6 +34,7 @@ export default function LabReferralsPage() {
     allergies?: string;
     filePath?: string;
     test_report_filename?: string;
+    urgency: string;
   }
 
   const [referrals, setReferrals] = useState<Referral[]>([]);
@@ -79,6 +80,7 @@ export default function LabReferralsPage() {
             <TableHead>Test</TableHead>
             <TableHead>Doctor</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Urgency</TableHead>
             <TableHead>Illness</TableHead>
             <TableHead>Allergies</TableHead>
             <TableHead>Test Report</TableHead>
@@ -92,7 +94,32 @@ export default function LabReferralsPage() {
               <TableCell>{`${referral.patient.first_name} ${referral.patient.last_name}`}</TableCell>
               <TableCell>{referral.test.name}</TableCell>
               <TableCell>{`${referral.doctor.first_name} ${referral.doctor.last_name}`}</TableCell>
-              <TableCell>{referral.status}</TableCell>
+              <TableCell>
+                <span
+                  className={`px-2 py-1 rounded-full text-white text-sm font-semibold ${
+                    referral.status?.toLowerCase() === 'completed'
+                      ? 'bg-teal-500'
+                      : referral.status?.toLowerCase() === 'pending'
+                        ? 'bg-red-500'
+                        : 'bg-gray-400'
+                  }`}
+                >
+                  {referral.status || 'Unknown'}
+                </span>
+              </TableCell>
+              <TableCell>
+                <span
+                  className={`px-2 py-1 rounded-full text-white text-sm font-semibold ${
+                    referral.urgency?.toLowerCase() === 'emergency'
+                      ? 'bg-red-600'
+                      : referral.urgency?.toLowerCase() === 'urgent'
+                        ? 'bg-orange-400'
+                        : 'bg-blue-500'
+                  }`}
+                >
+                  {referral.urgency}
+                </span>
+              </TableCell>
               <TableCell>{referral.illness || 'N/A'}</TableCell>
               <TableCell>{referral.allergies || 'N/A'}</TableCell>
               <TableCell>
@@ -103,10 +130,10 @@ export default function LabReferralsPage() {
                     rel="noopener noreferrer"
                     className="text-blue-600 underline"
                   >
-                    View PDF
+                    View Report
                   </a>
                 ) : (
-                  <span>No PDF</span>
+                  <span>No Report</span>
                 )}
               </TableCell>
               <TableCell>

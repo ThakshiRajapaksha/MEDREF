@@ -34,7 +34,6 @@ const Table = <T,>({ columns, data = [], handleViewClick }: TableProps<T>) => {
 
   return (
     <div className="p-4">
-      <h2 className="text-xl font-bold mb-4">Data Table</h2>
       <input
         type="text"
         placeholder="Search..."
