@@ -139,89 +139,111 @@ export default function LabTechnicianReferralDetails() {
           <TabsTrigger value="details">Form</TabsTrigger>
           <TabsTrigger value="referral table">Submitted Referral</TabsTrigger>
         </TabsList>
-        <div className="w-full max-w-lg p-6 bg-white shadow-lg rounded-lg">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <TabsContent value="details">
-              <h2 className="text-xl font-bold text-gray-700">
-                Patient Information
-              </h2>
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col item-center space-y-6 mt-4 w-full bg-white p-6 shadow-lg rounded"
+        >
+          <TabsContent value="details">
+            <h2 className="text-xl font-bold text-gray-700">
+              Patient Information
+            </h2>
 
-              <div>
-                <Label htmlFor="first_name">First Name</Label>
-                <Input
-                  id="first_name"
-                  value={formData.first_name}
-                  disabled
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <Label htmlFor="first_name">First Name</Label>
+              <Input
+                id="first_name"
+                value={formData.first_name}
+                disabled
+                className="w-full p-2 mt-1"
+              />
+            </div>
 
-              <div>
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input
-                  id="last_name"
-                  value={formData.last_name}
-                  disabled
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <Label htmlFor="last_name">Last Name</Label>
+              <Input
+                id="last_name"
+                value={formData.last_name}
+                disabled
+                className="w-full p-2 mt-1"
+              />
+            </div>
 
-              <div>
-                <Label htmlFor="medicalHistory">Medical History</Label>
-                <Textarea
-                  id="medicalHistory"
-                  value={formData.medicalHistory}
-                  disabled
-                  rows={4}
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <Label htmlFor="medicalHistory">Medical History</Label>
+              <Textarea
+                id="medicalHistory"
+                value={formData.medicalHistory}
+                disabled
+                rows={4}
+                className="w-full p-2 mt-1"
+              />
+            </div>
 
-              <h2 className="text-xl font-bold text-gray-700">
-                Referral Details
-              </h2>
+            <h2 className="text-xl font-bold text-gray-700">
+              Referral Details
+            </h2>
 
-              <div>
-                <Label htmlFor="test_type">Test Type</Label>
-                <Input
-                  id="test_type"
-                  value={formData.test_type}
-                  disabled
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <Label htmlFor="test_type">Test Type</Label>
+              <Input
+                id="test_type"
+                value={formData.test_type}
+                disabled
+                className="w-full p-2 mt-1"
+              />
+            </div>
 
-              <div>
-                <Label htmlFor="test_report">
-                  Upload Test Report (PDF, Max 5MB)
-                </Label>
-                <input type="file" accept=".pdf" onChange={handleFileChange} />
-                {!isFileValid && (
-                  <p className="text-sm text-red-500 mt-2">
-                    Invalid file. Please upload a PDF no larger than 5MB.
-                  </p>
-                )}
-              </div>
-              {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-              <div className="mt-4">
-                {activeTab === 'details' && (
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting || !isFileValid}
-                    className="w-full"
-                  >
-                    {isSubmitting ? 'Uploading...' : 'Submit'}
-                  </Button>
-                )}
-              </div>
-            </TabsContent>
-          </form>
-          <TabsContent value="referral table">
-            <Button onClick={handleViewPatients} className="mb-4 p-2">
-              View referrals
-            </Button>
+            <div className="w-full p-2 mt-1">
+              {/* File Upload Label */}
+              <Label
+                htmlFor="test_report"
+                className="font-semibold text-gray-700"
+              >
+                Upload Test Report{' '}
+                <span className="text-gray-500">(PDF, Max 5MB)</span>
+              </Label>
+
+              {/* File Input */}
+              <input
+                type="file"
+                accept=".pdf"
+                onChange={handleFileChange}
+                className="mt-2"
+              />
+
+              {/* Show selected file name */}
+              {formData.test_report && (
+                <p className="mt-2 text-green-600 font-medium">
+                  Selected File: {formData.test_report.name}
+                </p>
+              )}
+
+              {/* Show error if invalid file */}
+              {!isFileValid && (
+                <p className="text-sm text-red-500 mt-2">
+                  Invalid file. Please upload a PDF no larger than 5MB.
+                </p>
+              )}
+            </div>
+            {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+            <div className="mt-4 flex justify-center">
+              {activeTab === 'details' && (
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !isFileValid}
+                  className="w-full sm:w-64 p-2 mt-4"
+                >
+                  {isSubmitting ? 'Uploading...' : 'Submit'}
+                </Button>
+              )}
+            </div>
           </TabsContent>
-        </div>
+        </form>
+        <TabsContent value="referral table">
+          <Button onClick={handleViewPatients} className="mb-4 p-2">
+            View referrals
+          </Button>
+        </TabsContent>
       </Tabs>
     </div>
   );

@@ -17,6 +17,7 @@ interface Referral {
   patientId: string;
   patientName: string;
   status: string;
+  urgency: string;
   illness?: string | null;
   allergies?: string | null;
   testType: string;
@@ -46,6 +47,7 @@ const ReferralTable = () => {
               patientId: referral.patient.id,
               patientName: `${referral.patient.first_name} ${referral.patient.last_name}`,
               status: referral.status,
+              urgency: referral.urgency || 'normal',
               illness: referral.illness,
               allergies: referral.allergies,
               testType: referral.test_type || 'Unknown Test Type',
@@ -109,6 +111,7 @@ const ReferralTable = () => {
               <TableHead>Referral ID</TableHead>
               <TableHead>Patient Name</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Urgency</TableHead>
               <TableHead>Illness</TableHead>
               <TableHead>Allergies</TableHead>
               <TableHead>Test Type</TableHead>
@@ -122,7 +125,32 @@ const ReferralTable = () => {
               <TableRow key={referral.id}>
                 <TableCell>{referral.id}</TableCell>
                 <TableCell>{referral.patientName}</TableCell>
-                <TableCell>{referral.status}</TableCell>
+                <TableCell>
+                  <span
+                    className={`px-2 py-1 rounded-full text-white text-sm font-semibold ${
+                      referral.status?.toLowerCase() === 'completed'
+                        ? 'bg-teal-500'
+                        : referral.status?.toLowerCase() === 'pending'
+                          ? 'bg-red-500'
+                          : 'bg-gray-400'
+                    }`}
+                  >
+                    {referral.status || 'Unknown'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span
+                    className={`px-2 py-1 rounded-full text-white text-sm font-semibold ${
+                      referral.urgency?.toLowerCase() === 'emergency'
+                        ? 'bg-red-600'
+                        : referral.urgency?.toLowerCase() === 'urgent'
+                          ? 'bg-orange-400'
+                          : 'bg-blue-500'
+                    }`}
+                  >
+                    {referral.urgency}
+                  </span>
+                </TableCell>
                 <TableCell>{referral.illness || 'N/A'}</TableCell>
                 <TableCell>{referral.allergies || 'N/A'}</TableCell>
                 <TableCell>{referral.testType}</TableCell>
@@ -135,10 +163,10 @@ const ReferralTable = () => {
                       rel="noopener noreferrer"
                       className="text-blue-600 underline"
                     >
-                      View PDF
+                      View Report
                     </a>
                   ) : (
-                    <span>No PDF</span>
+                    <span>No Report</span>
                   )}
                 </TableCell>
                 <TableCell>

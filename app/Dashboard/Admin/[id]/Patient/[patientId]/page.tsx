@@ -117,97 +117,103 @@ export default function PatientRegisterForm() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-lg p-8 bg-white shadow-lg rounded-lg">
+    <div className="flex flex-col justify-start min-h-screen bg-gray-100 p-4 md:p-8">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col space-y-6 mt-4 w-full bg-white p-6 shadow-lg rounded"
+      >
         <h2 className="text-xl font-semibold text-gray-800 text-center mb-6">
           Update Patient
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <Label htmlFor="first_name">First Name</Label>
-            <Input
-              id="first_name"
-              name="first_name"
-              type="text"
-              value={formData.first_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <div className="space-y-2 col-span-2">
+          <Label htmlFor="first_name">First Name</Label>
+          <Input
+            id="first_name"
+            name="first_name"
+            type="text"
+            value={formData.first_name}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="last_name">Last Name</Label>
-            <Input
-              id="last_name"
-              name="last_name"
-              type="text"
-              value={formData.last_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <div className="space-y-2 col-span-2">
+          <Label htmlFor="last_name">Last Name</Label>
+          <Input
+            id="last_name"
+            name="last_name"
+            type="text"
+            value={formData.last_name}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="age">Age</Label>
-            <Input
-              id="age"
-              name="age"
-              type="number"
-              value={formData.age}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <div className="space-y-2 col-span-2">
+          <Label htmlFor="age">Age</Label>
+          <Input
+            id="age"
+            name="age"
+            type="number"
+            value={formData.age}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="gender">Gender</Label>
-            <Select
-              value={formData.gender}
-              onValueChange={(value) =>
-                setFormData({ ...formData, gender: value })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select gender" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="space-y-2 col-span-2">
+          <Label htmlFor="gender">Gender</Label>
+          <Select
+            value={formData.gender}
+            onValueChange={(value) =>
+              setFormData({ ...formData, gender: value })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-          <div>
-            <Label htmlFor="contact">Contact Number</Label>
-            <Input
-              id="contact"
-              name="contact"
-              type="text"
-              value={formData.contact}
-              onChange={handleChange}
-              required
-            />
-          </div>
+        <div className="space-y-2 col-span-2">
+          <Label htmlFor="contact">Contact Number</Label>
+          <Input
+            id="contact"
+            name="contact"
+            type="text"
+            value={formData.contact}
+            onChange={handleChange}
+            required
+          />
+        </div>
 
-          <div>
-            <Label htmlFor="medicalHistory">Medical History</Label>
-            <Textarea
-              id="medicalHistory"
-              name="medicalHistory"
-              value={formData.medicalHistory}
-              onChange={handleChange}
-              rows={4}
-            />
-          </div>
-
-          <Button type="submit" disabled={isSubmitting} className="w-full">
+        <div className="space-y-2 col-span-2">
+          <Label htmlFor="medicalHistory">Medical History</Label>
+          <Textarea
+            id="medicalHistory"
+            name="medicalHistory"
+            value={formData.medicalHistory}
+            onChange={handleChange}
+            rows={4}
+          />
+        </div>
+        <div className="mt-4 flex justify-center">
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full sm:w-64 p-2 mt-4"
+          >
             {isSubmitting ? 'Updating...' : 'Update Patient'}
           </Button>
+        </div>
 
-          {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
-        </form>
-      </div>
+        {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
+      </form>
     </div>
   );
 }

@@ -3,6 +3,9 @@ import formidable from 'formidable';
 import fs from 'fs';
 import { Readable } from 'stream';
 import { prisma } from '@/lib/prisma';
+import { Knock } from '@knocklabs/node';
+
+const knock = new Knock(process.env.NEXT_SECRET_KNOCK_API_KEY);
 
 interface ReferralResponse {
   id: number;
@@ -76,7 +79,6 @@ export async function GET(
         first_name: referral.doctor.first_name,
         last_name: referral.doctor.last_name,
       },
-
       status: referral.status,
       illness: referral.illness || null,
       allergies: referral.allergies || null,
@@ -161,6 +163,8 @@ export async function PUT(
       );
     }
 
+    let updatedReferral;
+
     if (role === 'doctor') {
       const updatedReferral = await prisma.referral.update({
         where: { id: parsedId },
@@ -171,6 +175,22 @@ export async function PUT(
           updatedAt: new Date(),
         },
       });
+
+      console.log('updatedreferrals:', updatedReferral);
+
+      // Get Lab Technician details
+      const labId = updatedReferral.labId;
+      console.log('labId:', labId);
+
+      // Trigger notification to the lab technician
+      const response = await knock.workflows.trigger('medref-notify', {
+        recipients: [{ id: labId.toString() }],
+        data: {
+          referralid: updatedReferral.id,
+        },
+      });
+
+      console.log('response:', response);
 
       return NextResponse.json({
         success: true,
@@ -198,12 +218,22 @@ export async function PUT(
 
       const tempPath = uploadedFile.filepath;
 
-      await prisma.referral.update({
+      updatedReferral = await prisma.referral.update({
         where: { id: parsedId },
         data: {
           status: 'Completed',
           test_report_filename: uploadedFile.originalFilename,
           filePath: tempPath,
+        },
+      });
+
+      const doctorId = updatedReferral.doctorId;
+
+      // Trigger notification to the doctor
+      await knock.workflows.trigger('medref-notify', {
+        recipients: [{ id: doctorId.toString() }],
+        data: {
+          referralid: updatedReferral.id,
         },
       });
 

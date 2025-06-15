@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import backgroundImage from '@/app/assets/background.jpg';
 
 // Define the LoginPage component
 export default function LoginPage() {
@@ -62,7 +63,10 @@ export default function LoginPage() {
 
   // Render the login form
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-100">
+    <div
+      className="relative h-screen bg-cover bg-center flex flex-col items-center justify-center"
+      style={{ backgroundImage: `url(${backgroundImage.src})` }}
+    >
       <div className="w-full max-w-md p-8 space-y-4 bg-white rounded shadow-lg">
         <h1 className="text-2xl font-bold text-center">Login</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -101,7 +105,7 @@ export default function LoginPage() {
           {errorMessage && <p className="text-red-500">{errorMessage}</p>}
           <button
             type="submit"
-            className="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 disabled:bg-gray-400"
+            className="w-full px-4 py-2 text-white bg-teal-500 rounded-md hover:bg-teal-500 disabled:bg-gray-400"
             disabled={isLoading}
           >
             {isLoading ? 'Logging in...' : 'Log in'}
