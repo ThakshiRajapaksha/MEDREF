@@ -17,6 +17,8 @@ User Interfaces
 ![Alt text](./app/assets/Referral%20table.png)
 ![Alt text](./app/assets/Analytic%20dashboard.png)
 
+👉 [Download Report (PDF)](./app/assets/Final_Report.pdf)
+
 ## Getting Started
 
 First, run the development server:
