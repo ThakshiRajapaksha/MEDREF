@@ -1,7 +1,21 @@
-<<<<<<< HEAD
 # MEDREF
-=======
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+# Project Overview
+
+This project focuses on developing a web-based referral system for hospital laboratories, addressing the inefficiencies and potential inaccuracies of traditional paper-based methods still prevalent in many government hospitals. The primary goal is to create a digital platform that streamlines the exchange of physician-prescribed test requests and subsequent results between physicians and laboratories, thereby enhancing
+the accuracy and efficiency of diagnostic services. The system aims to maintain a comprehensive record of patient information, including medical history and test results, ensuring seamless communication and coordination throughout the diagnostic process.The developed system will be user-friendly, catering to the needs of administrators, laboratory technicians, and physicians. It seeks to replicate the functionality of referral slips in a digital format, facilitating the transfer of samples to the appropriate laboratory and the delivery of test results to the relevant specializing physician. By implementing this system, the project aims to address the challenges associated with time wastage and the
+lack of consideration for a patient’s collective medical history in traditional methods.
+
+![Alt text](./app/assets/Architecture.png)
+
+User Interfaces
+
+![Alt text](./app/assets/Home.png)
+![Alt text](./app/assets/Patient%20Registration.png)
+![Alt text](./app/assets/Referral%20submission.png)
+![Alt text](./app/assets/Test%20results%20submission.png)
+![Alt text](./app/assets/Referral%20table.png)
+![Alt text](./app/assets/Analytic%20dashboard.png)
 
 ## Getting Started
 
@@ -18,23 +32,3 @@ bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
->>>>>>> 18e04d3 (Initial commit from Create Next App)

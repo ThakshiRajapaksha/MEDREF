@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Sidebar } from '../components/ui/sidebar/sidebar';
 import { SidebarItem } from '../components/ui/sidebar/SidebarItem';
+import { FaUserFriends } from 'react-icons/fa';
 import {
   FaUser,
   FaHeartbeat,
@@ -123,7 +124,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {
           label: 'Patients List',
           path: `/Dashboard/${role}/${userId}/PatientTable`,
-          icon: <FaUser size={24} color="black" />,
+          icon: <FaUserFriends size={24} color="black" />,
         }
       );
     }
